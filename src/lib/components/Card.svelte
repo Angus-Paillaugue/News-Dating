@@ -17,8 +17,8 @@
 				{@html article.title}
 			</h1>
 		</header>
-		<time datetime={article.date} class="text-sm text-neutral-600">{formatDate(article.date)}</time>
-		<p class="leading-6 text-text-body line-clamp-4 md:line-clamp-6">
+		<time datetime={article.date}>{formatDate(article.date)}</time>
+		<p class="line-clamp-4 md:line-clamp-6 text-wrap-balance">
 			{@html article.description.split(' ').map(generateFormattedText).join(' ')}
 		</p>
 	</div>

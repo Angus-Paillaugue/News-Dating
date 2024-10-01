@@ -15,6 +15,7 @@
 	const maxZIndex = 9999;
 	let isLoading = $state(false);
 	let error = $state(null);
+	const CARD_ROTATION_FACTOR = 6;
 
 	async function fetchData() {
 		items = [];
@@ -29,7 +30,7 @@
 			const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
 
 			const itemsElement = xmlDoc.getElementsByTagName('item');
-			Array.from(itemsElement).forEach((item) => {
+			Array.from(itemsElement).forEach((item, index) => {
 				try {
 					const title = item.getElementsByTagName('title')[0].firstChild.nodeValue;
 					const url = item.getElementsByTagName('link')[0].firstChild.nodeValue;
@@ -46,7 +47,7 @@
 						description,
 						date,
 						img,
-						color: bookmark?.color ?? CARDS_COLORS[Math.floor(Math.random() * CARDS_COLORS.length)]
+						color: bookmark?.color ?? CARDS_COLORS[index % CARDS_COLORS.length]
 					});
 				} catch (err) {
 					console.error('ERROR: ' + err);
@@ -61,7 +62,6 @@
 		isLoading = false;
 	}
 
-	// TODO: Uncomment this in prod
 	onMount(async () => {
 		await fetchData();
 	});
@@ -80,13 +80,13 @@
 		const touch = event.touches[0];
 		items[index].currentX = touch.clientX;
 		const diffX = items[index].currentX - items[index].startX;
-		const rotation = diffX / 10; // Adjust the divisor to control the rotation speed
+		const rotation = diffX / CARD_ROTATION_FACTOR;
 		items[index].transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
 	}
 
 	function handleTouchEnd(event, index, article) {
 		const diffX = items[index].currentX - items[index].startX;
-		if (Math.abs(diffX) > 100) {
+		if (Math.abs(diffX) > event.target.clientWidth / 4) {
 			// If swipe right
 			if (diffX > 0) {
 				fsArticleProps.url = article.url;
@@ -95,8 +95,9 @@
 			}
 			const duration = window.innerWidth / 2 + 225;
 			const endValue = diffX > 0 ? duration : -duration;
+			const rotation = endValue / CARD_ROTATION_FACTOR;
 			items[index].transitionDuration = duration;
-			items[index].transform = `translateX(${endValue}px)`;
+			items[index].transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
 			items[index].opacity = 0;
 		} else {
 			items[index].transform = 'translateX(0) rotate(0)';
@@ -111,23 +112,22 @@
 	bind:visible={fsArticleProps.visible}
 />
 
-<div class="h-full grow flex flex-col">
-	<div class="shrink-0 p-4 pb-0">
-		<div
-			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-4 max-w-md mx-auto w-full"
-		>
-			{#each Object.keys(FEED_URLS) as category}
-				<button
-					class={cn(
-						'shrink-0 px-4 py-2 rounded-full bg-neutral-800 text-neutral-100 font-bold transition-colors capitalize',
-						activeSelectItem === category && 'bg-neutral-100 text-neutral-800'
-					)}
-					onclick={() => (activeSelectItem = category)}>{category}</button
-				>
-			{/each}
-		</div>
+<div class="h-full grow flex flex-col pb-28 overflow-hidden">
+	<div
+		class="shrink-0 pt-4 flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-4 max-w-md mx-auto w-full"
+		style="z-index: {maxZIndex};"
+	>
+		{#each Object.keys(FEED_URLS) as category}
+			<button
+				class={cn(
+					'shrink-0 px-4 py-2 rounded-full bg-neutral-800 text-neutral-100 font-bold transition-colors capitalize',
+					activeSelectItem === category && 'bg-neutral-100 text-neutral-800'
+				)}
+				onclick={() => (activeSelectItem = category)}>{category}</button
+			>
+		{/each}
 	</div>
-	<div class="flex grow flex-col items-center justify-center relative overflow-hidden">
+	<div class="flex grow flex-col items-center justify-center relative">
 		{#if error}
 			<div
 				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-row gap-4 text-text-heading items-center"
@@ -142,7 +142,7 @@
 			{#each items as article, i}
 				<div
 					class="absolute inset-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] trconsole.logsition-all"
-					style="z-index: {maxZIndex - i}; transform: {article.transform ||
+					style="z-index: {maxZIndex - i - 1}; transform: {article.transform ||
 						'translateX(0) rotate(0)'}; transition-duration: {article.transitionDuration ??
 						'75'}ms; opacity: {article.opacity ?? 1};"
 					ontouchstart={(event) => handleTouchStart(event, i)}

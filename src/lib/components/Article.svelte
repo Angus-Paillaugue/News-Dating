@@ -1,8 +1,8 @@
 <script>
 	import { formatDate, generateFormattedText } from '$lib/utils';
-	import { scale } from 'svelte/transition';
+	import { scale, fade } from 'svelte/transition';
 	import Spinner from './Spinner.svelte';
-	import BookmarkFull from '$lib/components/icons/BookmarkFull.svelte';
+	import BookmarkFill from '$lib/components/icons/BookmarkFill.svelte';
 	import BookmarkBorder from '$lib/components/icons/BookmarkBorder.svelte';
 	import Share from '$lib/components/icons/Share.svelte';
 	import Check from '$lib/components/icons/Check.svelte';
@@ -36,20 +36,22 @@
 		const parser = new DOMParser();
 		const xmlDoc = parser.parseFromString(xml.contents, 'text/html');
 		const contentContainer = xmlDoc.querySelector('.t-content__body');
-		const pageContents = contentContainer.querySelectorAll(
-			'p:not(.o-self-promo p), h1, h2, h3, h4, h5, h6, img'
-		);
 		const title = xmlDoc.querySelector('.t-content__title').textContent;
 		const date = xmlDoc
 			.querySelector('meta[property="article:published_time"]')
 			.getAttribute('content');
 		const image = xmlDoc.querySelector('.t-content__main-media > figure img').getAttribute('src');
 
-		article.paragraphs = Array.from(pageContents).map((p) => {
-			if (p.tagName === 'IMG')
-				return { tag: p.tagName.toLowerCase(), content: p.getAttribute('src') };
-			return { tag: p.tagName.toLowerCase(), content: p.textContent };
-		});
+		if (contentContainer) {
+			const pageContents = contentContainer.querySelectorAll(
+				'p:not(.o-self-promo p), h1, h2, h3, h4, h5, h6, img'
+			);
+			article.paragraphs = Array.from(pageContents).map((p) => {
+				if (p.tagName === 'IMG')
+					return { tag: p.tagName.toLowerCase(), content: p.getAttribute('src') };
+				return { tag: p.tagName.toLowerCase(), content: p.textContent };
+			});
+		}
 		article.title = title;
 		article.date = new Date(date);
 		article.image = image;
@@ -76,21 +78,26 @@
 			bookmarks = bookmarks.filter((b) => b.url !== url);
 			if (onBookmarkChange) onBookmarkChange(bookmarks);
 		} else {
+			let newBookmark = {
+				url,
+				title: article.title,
+				date: article.date,
+				img: article.image,
+				color: color,
+				description: article?.paragraphs?.map((p) => p.content)?.join('\n') || 'No description'
+			};
 			const res = await fetch('/api/addBookmark', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					url,
-					title: article.title,
-					date: article.date,
-					img: article.image,
-					color: color,
-					description: article.paragraphs.map((p) => p.content).join('\n')
-				})
+
+				body: JSON.stringify(newBookmark)
 			});
 			if (res.ok) isBookmarked = true;
+			const insertId = await res.json();
+			newBookmark.id = insertId;
+			bookmarks.push(newBookmark);
 			isBookmarking = false;
 			if (onBookmarkChange) onBookmarkChange(bookmarks);
 		}
@@ -99,16 +106,23 @@
 
 {#if visible}
 	<div
+		class="backdrop-blur-md fixed inset-0"
+		style="z-index: 9999;"
+		transition:fade={{ duration: 500 }}
+	></div>
+	<div
 		class="fixed inset-0 flex flex-col items-center justify-center md:p-4 md:pb-14"
 		style="z-index: 10000;"
 		transition:scale={{ duration: 500 }}
 	>
 		<div
-			class="flex flex-col items-start justify-start relative h-full w-full max-w-screen-md rounded-3xl"
+			class="flex flex-col items-start justify-start relative h-full w-full max-w-screen-md md:rounded-3xl"
 			style="background-color: #{color};"
 		>
 			{#if loading}
-				<Spinner class="size-8 absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2" />
+				<div class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+					<Spinner class="size-8" />
+				</div>
 			{:else}
 				<!-- Action buttons -->
 				<div class="p-4 md:p-6 flex w-full flex-row justify-between items-start">
@@ -156,7 +170,7 @@
 								</div>
 							{:else if isBookmarked}
 								<div in:scale>
-									<BookmarkFull class="size-6" />
+									<BookmarkFill class="size-6" />
 								</div>
 							{:else}
 								<div in:scale>
@@ -166,25 +180,18 @@
 						</button>
 					</div>
 				</div>
-				<div class="grow flex overflow-y-hidden flex-col p-6 pt-0">
+				<div class="grow flex overflow-y-hidden flex-col p-6 pt-0 md:pb-16">
 					<div class="overflow-y-auto no-scrollbar grow rounded-3xl pb-20 md:pb-4">
 						<!-- Main image -->
-						<div class="relative w-full">
-							<img src={article.image} class="w-full" alt="" />
-							<div
-								class="absolute bottom-0 left-0 right-0 p-2 pt-24 bg-gradient-to-b from-transparent to-95%"
-								style="--tw-gradient-to: #{color} var(--tw-gradient-to-position);"
-							></div>
-						</div>
-						<h1 class="leading-10 text-3xl font-semibold text-text-heading mt-2">
+						<img src={article.image} class="w-full rounded-3xl" alt="" />
+						<h1 class="leading-10 text-2xl md:text-3xl font-semibold text-text-heading my-4">
 							{article.title}
 						</h1>
-						<time datetime={article.date} class="text-sm text-neutral-600"
-							>{formatDate(article.date)}</time
-						>
-						{#each article.paragraphs as p}
+						<time datetime={article.date}>{formatDate(article.date)}</time>
+						<!-- Article contents -->
+						{#each article?.paragraphs as p}
 							{#if p.tag === 'p'}
-								<p class="leading-6 text-neutral-700 font-medium mt-4">
+								<p class="mt-4">
 									{@html p.content.split(' ').map(generateFormattedText).join(' ')}
 								</p>
 							{:else if p.tag === 'h1'}
@@ -227,10 +234,11 @@
 								<img src={p.content} class="w-full rounded-xl" alt="" />
 							{/if}
 						{/each}
+						<!-- Read original link -->
 						<a
 							href={url}
 							target="_blank"
-							class="inline-flex flex-row items-center gap-2 text-text-body mt-4 underline underline-offset-2"
+							class="flex flex-row items-center gap-2 text-text-body mt-4 underline underline-offset-2"
 						>
 							Read original
 							<ChevronsRight class="size-5" />

@@ -45,7 +45,7 @@
 		<button
 			disabled={isSendingForm}
 			type="submit"
-			class="flex flex-row items-center justify-center gap-2 w-full px-4 py-4 bg-primary-400 rounded-full text-neutral-100"
+			class="flex flex-row items-center justify-center gap-2 w-full px-4 py-4 bg-neutral-400 rounded-full text-neutral-100"
 		>
 			{#if isSendingForm}
 				<Spinner />

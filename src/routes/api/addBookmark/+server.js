@@ -9,7 +9,7 @@ export async function POST({ request, locals }) {
 	}
 	const { user } = locals;
 	const db = await createConnection();
-	await db.query(
+	const [newBookmark] = await db.query(
 		'INSERT INTO bookmarks (userId, url, title, description, img, color, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
 		[
 			user.id,
@@ -21,5 +21,5 @@ export async function POST({ request, locals }) {
 			new Date(date).toISOString().slice(0, 19).replace('T', ' ')
 		]
 	);
-	return new Response(null, { status: 204 });
+	return new Response(newBookmark.insertId, { status: 200 });
 }

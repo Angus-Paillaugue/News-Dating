@@ -18,7 +18,7 @@
 }
 
 * {
-	@apply scroll-smooth outline-offset-4  focus:outline-1 !outline-primary-600;
+	@apply scroll-smooth outline-none focus:outline-none focus:ring-2 !ring-neutral-300;
 }
 
 html {
@@ -26,8 +26,7 @@ html {
 }
 
 body {
-	--br-weight: 990;
-	@apply font-['Mulish'] bg-body-dark text-text-body-dark;
+	@apply font-body bg-body-dark text-text-body-dark font-normal;
 }
 
 ::-webkit-scrollbar {
@@ -46,11 +45,6 @@ body {
 	@apply bg-neutral-600;
 }
 
-::selection,
-::-moz-selection {
-	@apply bg-primary-300 text-primary-950;
-}
-
 /* Text */
 h1,
 h2,
@@ -58,5 +52,12 @@ h3,
 h4,
 h5,
 h6 {
-	@apply font-['Poppins'] text-text-heading-dark;
+	@apply font-heading text-text-heading-dark;
+}
+
+p {
+	@apply text-neutral-700 leading-6 font-body;
+}
+time {
+	@apply text-sm text-neutral-500 font-body;
 }
