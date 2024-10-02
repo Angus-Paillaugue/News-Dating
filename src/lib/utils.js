@@ -77,7 +77,7 @@ export function cn(...inputs) {
  * @returns {string} The formatted text.
  */
 export function generateFormattedText(word, options = {}) {
-	const DEFAULT_SEP = ['<b style="font-weight: var(--br-weight);">', '</b>'];
+	const DEFAULT_SEP = ['<b class="bionic-reading">', '</b>'];
 	const FIXATION_BOUNDARY_LIST = [
 		[0, 4, 12, 17, 24, 29, 35, 42, 48],
 		[1, 2, 7, 10, 13, 14, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49],

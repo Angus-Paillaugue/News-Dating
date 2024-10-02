@@ -27,6 +27,7 @@
 			);
 			const xml = await response.json();
 			const parser = new DOMParser();
+
 			const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
 
 			const itemsElement = xmlDoc.getElementsByTagName('item');
@@ -36,8 +37,10 @@
 					const url = item.getElementsByTagName('link')[0].firstChild.nodeValue;
 					const description = item.getElementsByTagName('description')[0].firstChild.nodeValue;
 					const date = item.getElementsByTagName('pubDate')[0].firstChild.nodeValue;
-
-					const img = item.getElementsByTagName('media:thumbnail')[0].getAttribute('url');
+					let img = item.getElementsByTagName('media:content')[0]?.getAttribute('url');
+					if (!img) {
+						img = item.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
+					}
 
 					const bookmark = bookmarks.find((b) => b.url === url);
 
@@ -113,19 +116,21 @@
 />
 
 <div class="h-full grow flex flex-col pb-28 overflow-hidden">
-	<div
-		class="shrink-0 pt-4 flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-4 max-w-md mx-auto w-full"
-		style="z-index: {maxZIndex};"
-	>
-		{#each Object.keys(FEED_URLS) as category}
-			<button
-				class={cn(
-					'shrink-0 px-4 py-2 rounded-full bg-neutral-800 text-neutral-100 font-bold transition-colors capitalize',
-					activeSelectItem === category && 'bg-neutral-100 text-neutral-800'
-				)}
-				onclick={() => (activeSelectItem = category)}>{category}</button
-			>
-		{/each}
+	<div class="shrink-0 p-4 max-w-md mx-auto w-full">
+		<div
+			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8"
+			style="z-index: {maxZIndex};"
+		>
+			{#each Object.keys(FEED_URLS) as category}
+				<button
+					class={cn(
+						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
+						activeSelectItem === category && 'text-2xl font-semibold text-text-heading-dark'
+					)}
+					onclick={() => (activeSelectItem = category)}>{category}</button
+				>
+			{/each}
+		</div>
 	</div>
 	<div class="flex grow flex-col items-center justify-center relative">
 		{#if error}
@@ -141,7 +146,7 @@
 		{:else}
 			{#each items as article, i}
 				<div
-					class="absolute inset-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] trconsole.logsition-all"
+					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] trconsole.logsition-all"
 					style="z-index: {maxZIndex - i - 1}; transform: {article.transform ||
 						'translateX(0) rotate(0)'}; transition-duration: {article.transitionDuration ??
 						'75'}ms; opacity: {article.opacity ?? 1};"

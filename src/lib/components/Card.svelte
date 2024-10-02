@@ -9,7 +9,9 @@
 	style="background-color: #{article.color};"
 >
 	<div class="relative w-full h-full p-4 md:p-6 flex flex-col gap-4">
-		<img src={article.img} alt="" class="h-1/3 min-h-36 w-full rounded-xl object-cover" />
+		{#if article?.img}
+			<img src={article.img} alt="" class="h-1/3 min-h-36 w-full rounded-xl object-cover" />
+		{/if}
 		<header>
 			<h1
 				class="leading-8 md:leading-10 text-2xl md:text-3xl font-semibold text-text-heading line-clamp-[8]"

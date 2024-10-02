@@ -17,8 +17,17 @@
 	}
 }
 
+:root {
+	--text-body: theme(colors.text-body.DEFAULT);
+	--text-body-dark: theme(colors.text-body.dark);
+	--text-heading: theme(colors.text-heading.DEFAULT);
+	--text-heading-dark: theme(colors.text-heading.dark);
+	--body-color: theme(colors.body.DEFAULT);
+	--body-color-dark: theme(colors.body.dark);
+}
+
 * {
-	@apply scroll-smooth outline-none focus:outline-none focus:ring-2 !ring-neutral-300;
+	@apply scroll-smooth outline-none focus:outline-none;
 }
 
 html {
@@ -60,4 +69,8 @@ p {
 }
 time {
 	@apply text-sm text-neutral-500 font-body;
+}
+
+.bionic-reading {
+	@apply transition-[font-weight] duration-500 font-[var(--br-weight)];
 }

@@ -50,6 +50,7 @@
 
 <div class="h-screen relative overflow-hidden flex flex-col">
 	<div class="max-w-md mx-auto w-full p-4">
+		<h1 class="mb-4 text-3xl font-bold">Your bookmarks</h1>
 		<input
 			type="text"
 			class="px-4 py-2 text-lg font-medium rounded-full bg-neutral-800 w-full text-text-heading-dark placeholder:text-text-body focus:outline-0 outline-0"

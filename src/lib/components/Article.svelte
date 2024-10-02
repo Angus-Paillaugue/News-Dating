@@ -2,12 +2,14 @@
 	import { formatDate, generateFormattedText } from '$lib/utils';
 	import { scale, fade } from 'svelte/transition';
 	import Spinner from './Spinner.svelte';
+	import { showNavbar, bionicReadingEnabled } from '$lib/stores';
 	import BookmarkFill from '$lib/components/icons/BookmarkFill.svelte';
 	import BookmarkBorder from '$lib/components/icons/BookmarkBorder.svelte';
 	import Share from '$lib/components/icons/Share.svelte';
 	import Check from '$lib/components/icons/Check.svelte';
 	import Close from '$lib/components/icons/Close.svelte';
 	import ChevronsRight from '$lib/components/icons/ChevronsRight.svelte';
+	import { PROXY_URL } from '$lib/constants';
 
 	let loading = $state(true);
 	let {
@@ -19,15 +21,33 @@
 	} = $props();
 	let article = $state({ title: '', paragraphs: [], date: '' });
 	let shared = $state(false);
+	let isBookmarking = $state(false);
+	let fsImageModalProps = $state({ visible: false, src: '' });
 	let isBookmarked = $state(
 		bookmarks.some((b) => encodeURIComponent(b.url) === encodeURIComponent(url))
 	);
-	let isBookmarking = $state(false);
+
 	$effect(() => {
 		isBookmarked = bookmarks.some((b) => encodeURIComponent(b.url) === encodeURIComponent(url));
 	});
+	$effect(() => {
+		if (visible) {
+			showNavbar.set(false);
+		} else {
+			showNavbar.set(true);
+		}
+	});
+	$effect(async () => {
+		if (!url || !visible) return;
+		await fetchContents(url);
+	});
 
-	const PROXY_URL = 'http://localhost:1458';
+	/**
+	 * Asynchronously fetches the article contents from the given URL.
+	 *
+	 * @param {string} url - The URL from which to fetch contents.
+	 * @returns {Promise<any>} A promise that resolves to the fetched contents.
+	 */
 	async function fetchContents(url) {
 		loading = true;
 		const response = await fetch(`${PROXY_URL}/get?url=${encodeURIComponent(url)}`);
@@ -58,11 +78,10 @@
 		loading = false;
 	}
 
-	$effect(async () => {
-		if (!url || !visible) return;
-		await fetchContents(url);
-	});
-
+	/**
+	 * Toggles the bookmark status of an article.
+	 * This function is asynchronous and involve updating the bookmark status in the database.
+	 */
 	async function toggleBookmark() {
 		isBookmarking = true;
 		if (isBookmarked) {
@@ -104,12 +123,23 @@
 	}
 </script>
 
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape') {
+			fsImageModalProps.visible = false;
+		}
+	}}
+/>
+
 {#if visible}
+	<!-- Backdrop -->
 	<div
 		class="backdrop-blur-md fixed inset-0"
 		style="z-index: 9999;"
 		transition:fade={{ duration: 500 }}
 	></div>
+
+	<!-- Article card -->
 	<div
 		class="fixed inset-0 flex flex-col items-center justify-center md:p-4 md:pb-14"
 		style="z-index: 10000;"
@@ -126,6 +156,7 @@
 			{:else}
 				<!-- Action buttons -->
 				<div class="p-4 md:p-6 flex w-full flex-row justify-between items-start">
+					<!-- Close full-screen article -->
 					<button
 						onclick={() => (visible = false)}
 						class="rounded-full p-2 text-text-body"
@@ -134,7 +165,24 @@
 					>
 						<Close class="size-6" />
 					</button>
+					<!-- Right action buttons -->
 					<div class="flex flex-row items-center gap-6">
+						<!-- Toggle bionic reading -->
+						<button
+							class="rounded-full size-10 transition-colors"
+							aria-label="Toggle bionic reading"
+							style="background-color: #{$bionicReadingEnabled
+								? '737373'
+								: color}; filter: brightness(93%); color: #{$bionicReadingEnabled
+								? color
+								: '737373'};"
+							onclick={() => {
+								$bionicReadingEnabled = !$bionicReadingEnabled;
+							}}
+						>
+							<h1 class="text-inherit text-xl font-bold transition-colors">Br</h1>
+						</button>
+						<!-- Share -->
 						<button
 							class="rounded-full p-2 text-text-body"
 							aria-label="Share"
@@ -158,6 +206,7 @@
 								</div>
 							{/if}
 						</button>
+						<!-- Toggle bookmark -->
 						<button
 							class="rounded-full p-2 text-text-body group"
 							aria-label="Add to bookmarks"
@@ -180,7 +229,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="grow flex overflow-y-hidden flex-col p-6 pt-0 md:pb-16">
+				<div class="grow flex overflow-y-hidden flex-col p-6 pt-0">
 					<div class="overflow-y-auto no-scrollbar grow rounded-3xl pb-20 md:pb-4">
 						<!-- Main image -->
 						<img src={article.image} class="w-full rounded-3xl" alt="" />
@@ -231,7 +280,15 @@
 									{p.content}
 								</h6>
 							{:else if p.tag === 'img'}
-								<img src={p.content} class="w-full rounded-xl" alt="" />
+								<button
+									aria-label="Open image fullscreen"
+									onclick={() => {
+										fsImageModalProps.src = p.content;
+										fsImageModalProps.visible = true;
+									}}
+								>
+									<img src={p.content} class="w-max rounded-xl max-h-[500px]" alt="" />
+								</button>
 							{/if}
 						{/each}
 						<!-- Read original link -->
@@ -248,4 +305,32 @@
 			{/if}
 		</div>
 	</div>
+{/if}
+
+{#if fsImageModalProps.visible}
+	<button
+		style="z-index: 10001;"
+		class="fixed inset-0"
+		aria-label="Close full screen image"
+		onclick={() => {
+			fsImageModalProps.visible = false;
+		}}
+	>
+		<div class="w-full h-full relative">
+			<!-- Backdrop -->
+			<div class="backdrop-blur-md fixed inset-0" transition:fade={{ duration: 500 }}></div>
+
+			<!-- Article card -->
+			<div
+				class="fixed inset-0 flex flex-col items-center justify-center p-4"
+				transition:scale={{ duration: 500 }}
+			>
+				<img
+					src={fsImageModalProps.src}
+					alt=""
+					class="max-w-full max-h-full object-contain rounded-3xl"
+				/>
+			</div>
+		</div>
+	</button>
 {/if}
