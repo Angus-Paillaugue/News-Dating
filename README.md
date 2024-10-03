@@ -145,10 +145,9 @@ COMMIT;
 
 Just run `pnpm run dev` to serve the website.
 
-
 # TODO
 
- - [x] Add sign-up
- - [x] Add log-out
- - [x] Add account deletion
- - [ ] Add home page
+- [x] Add sign-up
+- [x] Add log-out
+- [x] Add account deletion
+- [ ] Add home page

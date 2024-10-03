@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import { CARDS_COLORS } from '$lib/constants';
+	import Button from '$lib/components/Button.svelte';
 
 	const { form } = $props();
 	let isSendingForm = $state(false);
@@ -38,20 +39,16 @@
 			placeholder="Password"
 		/>
 
-		<button
-			disabled={isSendingForm}
-			type="submit"
-			class="flex flex-row items-center justify-center text-lg font-medium gap-2 w-full px-4 py-2 bg-neutral-800 rounded-full text-text-heading-dark disabled:opacity-50 disabled:cursor-not-allowed"
-		>
+		<Button disabled={isSendingForm} type="submit">
 			{#if isSendingForm}
 				<Spinner />
 			{/if}
 			Log-in
-		</button>
+		</Button>
 
-		{#if form?.success == false}
+		{#if form?.error}
 			<div class="px-6 py-2 rounded-full bg-red-600 text-text-heading-dark font-semibold text-base">
-				{form.message}
+				{form.error}
 			</div>
 		{/if}
 

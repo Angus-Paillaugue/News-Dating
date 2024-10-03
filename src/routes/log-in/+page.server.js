@@ -2,24 +2,31 @@ import { createConnection } from '$lib/server/db';
 import { redirect } from '@sveltejs/kit';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { fail } from '@sveltejs/kit';
 import { AUTH_TOKEN_SECRET } from '$env/static/private';
 
 export const actions = {
 	default: async ({ cookies, request }) => {
 		const formData = Object.fromEntries(await request.formData());
 		const { username, password } = formData;
-		let userExists = [];
 		const db = await createConnection();
 
+		// Check if username is provided
+		if (!username) return fail(400, { error: 'Please provide a username!' });
+
+		// Check if password is provided and is at least 6 characters long
+		if (!password || password.length < 6) return fail(400, { error: 'Incorrect password!' });
+
 		// Check if user exists
-		const [userExistsUsername] = await db.query(
-			'SELECT * FROM users WHERE username = ?',
-			[username]
-		);
-		if (!userExistsUsername || userExistsUsername.username !== username) {
-			return { success: false, message: 'No account with this username!' };
-		}
-		const user = userExists[0];
+		const [userExistsUsername] = await db.query('SELECT * FROM users WHERE BINARY username = ?', [
+			username
+		]);
+
+		// If user does not exist, return error
+		if (userExistsUsername.length === 0)
+			return fail(400, { error: 'No account with this username!' });
+
+		const user = userExistsUsername[0];
 		const compare = await bcrypt.compare(password, user.passwordHash);
 		if (compare) {
 			cookies.set('token', generateAccessToken(username), {
@@ -29,7 +36,7 @@ export const actions = {
 			});
 			throw redirect(307, '/');
 		}
-		return { success: false, message: 'Incorrect password!' };
+		return fail(400, { error: 'Incorrect password!' });
 	}
 };
 

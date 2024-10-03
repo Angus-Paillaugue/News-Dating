@@ -32,7 +32,10 @@ export const actions = {
 		const hash = await bcrypt.hash(password, salt);
 
 		// Insert user
-		const [ insertedRow ] = await db.query('INSERT INTO users (username, passwordHash) VALUES (?, ?)', [username, hash]);
+		const [insertedRow] = await db.query(
+			'INSERT INTO users (username, passwordHash) VALUES (?, ?)',
+			[username, hash]
+		);
 		const userId = insertedRow.insertId;
 
 		// Insert default categories

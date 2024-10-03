@@ -1,14 +1,17 @@
 <script>
 	import { formatDate, generateFormattedText } from '$lib/utils';
 	import { fade, fly } from 'svelte/transition';
-	import Spinner from './Spinner.svelte';
 	import { showNavbar, bionicReadingEnabled } from '$lib/stores';
-	import BookmarkFill from '$lib/components/icons/BookmarkFill.svelte';
-	import BookmarkBorder from '$lib/components/icons/BookmarkBorder.svelte';
-	import Share from '$lib/components/icons/Share.svelte';
-	import Check from '$lib/components/icons/Check.svelte';
-	import Close from '$lib/components/icons/Close.svelte';
-	import ChevronsRight from '$lib/components/icons/ChevronsRight.svelte';
+	import { scale } from 'svelte/transition';
+	import {
+		BookmarkFill,
+		BookmarkBorder,
+		Share,
+		Check,
+		Close,
+		ChevronsRight
+	} from '$lib/components/icons';
+	import { Spinner } from '$lib/components';
 	import { PROXY_URL } from '$lib/constants';
 
 	let loading = $state(true);
@@ -143,7 +146,7 @@
 	<div
 		class="fixed inset-0 flex flex-col items-center justify-center md:p-4"
 		style="z-index: 10000;"
-		transition:fly={{ y:'100%', duration: 500 }}
+		transition:fly={{ y: '100%', duration: 500 }}
 	>
 		<div
 			class="flex flex-col items-start justify-start relative h-full w-full max-w-screen-md md:rounded-3xl"

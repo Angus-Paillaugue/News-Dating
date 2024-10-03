@@ -1,8 +1,7 @@
 <script>
-	import Card from '$lib/components/Card.svelte';
-	import Article from '$lib/components/Article.svelte';
+	import { Card, Article } from '$lib/components';
 	import { CARDS_COLORS } from '$lib/constants';
-	import CircleSlash from '$lib/components/icons/CircleSlash.svelte';
+	import { CircleSlash } from '$lib/components/icons';
 	import Fuse from 'fuse.js';
 
 	const { data } = $props();
@@ -39,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>Bookmarks</title>
+	<title>Bookmarks</title>
 </svelte:head>
 
 <Article

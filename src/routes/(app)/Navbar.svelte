@@ -2,12 +2,10 @@
 	import { page } from '$app/stores';
 	import { bionicReadingEnabled, showNavbar } from '$lib/stores';
 	import { cn } from '$lib/utils';
-	import HomeFill from '$lib/components/icons/HomeFill.svelte';
-	import HomeBorder from '$lib/components/icons/HomeBorder.svelte';
-	import BookmarkFill from '$lib/components/icons/BookmarkFill.svelte';
-	import BookmarkBorder from '$lib/components/icons/BookmarkBorder.svelte';
+	import { HomeFill, HomeBorder, BookmarkFill, BookmarkBorder } from '$lib/components/icons';
 	import { fly } from 'svelte/transition';
 	import { backInOut } from 'svelte/easing';
+	import { Button } from '$lib/components';
 
 	let activeNavLink = $state();
 
@@ -27,12 +25,9 @@
 	>
 		<div class="flex flex-row gap-2 p-2 relative">
 			<img src="/navBg.svg" alt="" class="absolute inset-0 -z-10" />
-			<a
+			<Button
 				href="/"
-				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2',
-					activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800'
-				)}
+				class={cn('size-14 p-2', activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800')}
 				aria-label="Home"
 			>
 				{#if activeNavLink === 'home'}
@@ -40,23 +35,20 @@
 				{:else}
 					<HomeBorder class="size-full" />
 				{/if}
-			</a>
-			<button
+			</Button>
+			<Button
 				onclick={() => {
 					$bionicReadingEnabled = !$bionicReadingEnabled;
 				}}
-				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2 flex flex-col items-center justify-center',
-					$bionicReadingEnabled && 'bg-neutral-100 text-neutral-800'
-				)}
+				class={cn('size-14', $bionicReadingEnabled && 'bg-neutral-100 text-neutral-800')}
 				aria-label="Search"
 			>
 				<h1 class="text-inherit text-4xl font-bold">Br</h1>
-			</button>
-			<a
+			</Button>
+			<Button
 				href="/bookmarks"
 				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2',
+					'size-14 p-2',
 					activeNavLink === 'bookmarks' && 'bg-neutral-100 text-neutral-800'
 				)}
 				aria-label="Bookmarks"
@@ -66,7 +58,7 @@
 				{:else}
 					<BookmarkBorder class="size-full" />
 				{/if}
-			</a>
+			</Button>
 		</div>
 	</div>
 {/if}

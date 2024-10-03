@@ -1,14 +1,11 @@
 <script>
 	import { onMount } from 'svelte';
 	import { cn } from '$lib/utils';
-	import Article from '$lib/components/Article.svelte';
-	import Card from '$lib/components/Card.svelte';
+	import { Card, Spinner, Article } from '$lib/components';
 	import { CARDS_COLORS, PROXY_URL } from '$lib/constants';
-	import Spinner from '$lib/components/Spinner.svelte';
-	import CircleX from '$lib/components/icons/CircleX.svelte';
+	import { CircleX, GridBorder } from '$lib/components/icons';
 	import InterestPicker from './InterestPicker.svelte';
-	import GridBorder from '$lib/components/icons/GridBorder.svelte';
-	import Dropdown from '$lib/components/Dropdown';
+	import { Button, Dropdown } from '$lib/components';
 
 	let items = $state([]);
 	const { data } = $props();
@@ -24,9 +21,8 @@
 	let activeCardIndex = $state(null);
 	const CARD_ROTATION_FACTOR = 6;
 
-
 	async function fetchData() {
-		if(!categories.length) return;
+		if (!categories.length) return;
 		items = [];
 		isLoading = true;
 		error = null;
@@ -123,7 +119,7 @@
 	<title>News</title>
 </svelte:head>
 
-<InterestPicker bind:visible={interestPickerVisible} bind:categories={categories} {allCategories} />
+<InterestPicker bind:visible={interestPickerVisible} bind:categories {allCategories} />
 
 <Article
 	url={fsArticleProps.url}
@@ -143,7 +139,11 @@
 					<GridBorder class="size-6 text-text-heading-dark" />
 				</Dropdown.Trigger>
 				{#snippet items()}
-					<Dropdown.Item onclick={() => {interestPickerVisible = true}}>Categories</Dropdown.Item>
+					<Dropdown.Item
+						onclick={() => {
+							interestPickerVisible = true;
+						}}>Categories</Dropdown.Item
+					>
 					<Dropdown.Item href="/dashboard">Account</Dropdown.Item>
 				{/snippet}
 			</Dropdown>
@@ -187,7 +187,13 @@
 				style="background-color: #{CARDS_COLORS[0]};"
 			>
 				<h1 class="text-xl font-medium text-inherit">You reached the end !</h1>
-				<button class="flex flex-row items-center justify-center text-lg font-medium gap-2 w-full px-4 py-2 bg-neutral-800 rounded-full text-text-heading-dark" onclick={() => {activeSelectItem = (activeSelectItem + 1) % categories.length}}>Change category</button>
+				<Button
+					onclick={() => {
+						activeSelectItem = (activeSelectItem + 1) % categories.length;
+					}}
+				>
+					Change category
+				</Button>
 			</div>
 		{:else}
 			<!-- Display news cards -->
