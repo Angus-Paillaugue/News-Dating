@@ -15,7 +15,7 @@ export const handle = async ({ event, resolve }) => {
 			locals.user = undefined;
 			throw redirect(307, '/log-in');
 		}
-	} else if (url.pathname !== '/log-in') {
+	} else if (url.pathname !== '/log-in' && url.pathname !== '/sign-in') {
 		locals.user = undefined;
 		throw redirect(307, '/log-in');
 	}

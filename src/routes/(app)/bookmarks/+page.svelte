@@ -38,6 +38,10 @@
 	});
 </script>
 
+<svelte:head>
+  <title>Bookmarks</title>
+</svelte:head>
+
 <Article
 	url={fsArticleProps.url}
 	bind:bookmarks

@@ -1,6 +1,6 @@
 <script>
 	import { formatDate, generateFormattedText } from '$lib/utils';
-	import { scale, fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import Spinner from './Spinner.svelte';
 	import { showNavbar, bionicReadingEnabled } from '$lib/stores';
 	import BookmarkFill from '$lib/components/icons/BookmarkFill.svelte';
@@ -141,9 +141,9 @@
 
 	<!-- Article card -->
 	<div
-		class="fixed inset-0 flex flex-col items-center justify-center md:p-4 md:pb-14"
+		class="fixed inset-0 flex flex-col items-center justify-center md:p-4"
 		style="z-index: 10000;"
-		transition:scale={{ duration: 500 }}
+		transition:fly={{ y:'100%', duration: 500 }}
 	>
 		<div
 			class="flex flex-col items-start justify-start relative h-full w-full max-w-screen-md md:rounded-3xl"

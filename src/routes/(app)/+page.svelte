@@ -3,27 +3,36 @@
 	import { cn } from '$lib/utils';
 	import Article from '$lib/components/Article.svelte';
 	import Card from '$lib/components/Card.svelte';
-	import { CARDS_COLORS, PROXY_URL, FEED_URLS } from '$lib/constants';
+	import { CARDS_COLORS, PROXY_URL } from '$lib/constants';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import CircleX from '$lib/components/icons/CircleX.svelte';
+	import InterestPicker from './InterestPicker.svelte';
+	import GridBorder from '$lib/components/icons/GridBorder.svelte';
+	import Dropdown from '$lib/components/Dropdown';
 
 	let items = $state([]);
 	const { data } = $props();
 	let fsArticleProps = $state({ visible: false, url: '', color: '' });
 	let bookmarks = $state(data.bookmarks || []);
-	let activeSelectItem = $state(Object.keys(FEED_URLS)[0]);
+	let categories = $state(data.categories || []);
+	const { allCategories } = data;
+	let activeSelectItem = $state(0);
 	const maxZIndex = 9999;
 	let isLoading = $state(false);
+	let interestPickerVisible = $state(false);
 	let error = $state(null);
+	let activeCardIndex = $state(null);
 	const CARD_ROTATION_FACTOR = 6;
 
+
 	async function fetchData() {
+		if(!categories.length) return;
 		items = [];
 		isLoading = true;
 		error = null;
 		try {
 			const response = await fetch(
-				`${PROXY_URL}/get?url=${encodeURIComponent(FEED_URLS[activeSelectItem])}`
+				`${PROXY_URL}/get?url=${encodeURIComponent(categories[activeSelectItem].url)}`
 			);
 			const xml = await response.json();
 			const parser = new DOMParser();
@@ -63,6 +72,7 @@
 		}
 
 		isLoading = false;
+		activeCardIndex = 0;
 	}
 
 	onMount(async () => {
@@ -102,11 +112,18 @@
 			items[index].transitionDuration = duration;
 			items[index].transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
 			items[index].opacity = 0;
+			activeCardIndex = index;
 		} else {
 			items[index].transform = 'translateX(0) rotate(0)';
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>News</title>
+</svelte:head>
+
+<InterestPicker bind:visible={interestPickerVisible} bind:categories={categories} {allCategories} />
 
 <Article
 	url={fsArticleProps.url}
@@ -115,24 +132,43 @@
 	bind:visible={fsArticleProps.visible}
 />
 
-<div class="h-full grow flex flex-col pb-28 overflow-hidden">
+<div class="h-full grow flex flex-col pb-[4.5rem] sm:pb-28 overflow-hidden">
+	<!-- Heading -->
 	<div class="shrink-0 p-4 max-w-md mx-auto w-full">
+		<div class="flex flex-row justify-between items-center">
+			<h1 class="text-xl font-extrabold">News</h1>
+			<!-- Open categories modal button -->
+			<Dropdown align="end">
+				<Dropdown.Trigger class="rounded-full border border-neutral-500/50 p-1">
+					<GridBorder class="size-6 text-text-heading-dark" />
+				</Dropdown.Trigger>
+				{#snippet items()}
+					<Dropdown.Item onclick={() => {interestPickerVisible = true}}>Categories</Dropdown.Item>
+					<Dropdown.Item href="/dashboard">Account</Dropdown.Item>
+				{/snippet}
+			</Dropdown>
+		</div>
+
+		<!-- Categories list -->
 		<div
-			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8"
+			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8 mt-8"
 			style="z-index: {maxZIndex};"
 		>
-			{#each Object.keys(FEED_URLS) as category}
+			{#each categories as category, i}
 				<button
 					class={cn(
 						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
-						activeSelectItem === category && 'text-2xl font-semibold text-text-heading-dark'
+						activeSelectItem === i && 'text-2xl font-semibold text-text-heading-dark'
 					)}
-					onclick={() => (activeSelectItem = category)}>{category}</button
+					onclick={() => (activeSelectItem = i)}>{category.label}</button
 				>
 			{/each}
 		</div>
 	</div>
+
+	<!-- Main content -->
 	<div class="flex grow flex-col items-center justify-center relative">
+		<!-- If any error was thrown during the fetching process -->
 		{#if error}
 			<div
 				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-row gap-4 text-text-heading items-center"
@@ -142,8 +178,19 @@
 				<h1 class="text-xl font-medium text-inherit">{error}</h1>
 			</div>
 		{:else if isLoading}
+			<!-- If is fetching news and parsing them -->
 			<Spinner class="size-8" />
+		{:else if activeCardIndex === items.length - 1}
+			<!-- If there are no more news card to display -->
+			<div
+				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-col gap-4 text-text-heading items-center"
+				style="background-color: #{CARDS_COLORS[0]};"
+			>
+				<h1 class="text-xl font-medium text-inherit">You reached the end !</h1>
+				<button class="flex flex-row items-center justify-center text-lg font-medium gap-2 w-full px-4 py-2 bg-neutral-800 rounded-full text-text-heading-dark" onclick={() => {activeSelectItem = (activeSelectItem + 1) % categories.length}}>Change category</button>
+			</div>
 		{:else}
+			<!-- Display news cards -->
 			{#each items as article, i}
 				<div
 					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] trconsole.logsition-all"

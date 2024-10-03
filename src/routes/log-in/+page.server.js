@@ -10,24 +10,23 @@ export const actions = {
 		const { username, password } = formData;
 		let userExists = [];
 		const db = await createConnection();
-		try {
-			[userExists] = await db.query('SELECT * FROM `users` WHERE `username` = ? LIMIT 1;', [
-				username
-			]);
-		} catch (err) {
-			console.log(err);
-			return { success: false, message: err?.code ?? err.toString() };
-		} finally {
-			db.end();
-		}
 
-		if (userExists.length === 0)
+		// Check if user exists
+		const [userExistsUsername] = await db.query(
+			'SELECT * FROM users WHERE username = ?',
+			[username]
+		);
+		if (!userExistsUsername || userExistsUsername.username !== username) {
 			return { success: false, message: 'No account with this username!' };
-
+		}
 		const user = userExists[0];
 		const compare = await bcrypt.compare(password, user.passwordHash);
 		if (compare) {
-			cookies.set('token', generateAccessToken(username), { path: '/', sameSite: 'strict' });
+			cookies.set('token', generateAccessToken(username), {
+				path: '/',
+				maxAge: 60 * 60 * 24,
+				secure: false
+			});
 			throw redirect(307, '/');
 		}
 		return { success: false, message: 'Incorrect password!' };

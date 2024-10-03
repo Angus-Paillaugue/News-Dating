@@ -22,7 +22,7 @@
 
 {#if $showNavbar}
 	<div
-		class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[10001]"
+		class="fixed bottom-2 sm:bottom-5 left-1/2 -translate-x-1/2 z-[10001]"
 		transition:fly={{ y: '92px', duration: 600, opacity: 1, easing: backInOut }}
 	>
 		<div class="flex flex-row gap-2 p-2 relative">
@@ -30,7 +30,7 @@
 			<a
 				href="/"
 				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-neutral-100 p-2',
+					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2',
 					activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800'
 				)}
 				aria-label="Home"
@@ -46,7 +46,7 @@
 					$bionicReadingEnabled = !$bionicReadingEnabled;
 				}}
 				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-neutral-100 p-2 flex flex-col items-center justify-center',
+					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2 flex flex-col items-center justify-center',
 					$bionicReadingEnabled && 'bg-neutral-100 text-neutral-800'
 				)}
 				aria-label="Search"
@@ -56,7 +56,7 @@
 			<a
 				href="/bookmarks"
 				class={cn(
-					'size-14 rounded-full bg-neutral-600/50 text-neutral-100 p-2',
+					'size-14 rounded-full bg-neutral-600/50 text-text-heading-dark p-2',
 					activeNavLink === 'bookmarks' && 'bg-neutral-100 text-neutral-800'
 				)}
 				aria-label="Bookmarks"

@@ -14,7 +14,7 @@
 <div class="pt-10 flex flex-col items-center justify-center p-2">
 	<form
 		class="max-w-md w-full rounded-3xl p-6 flex flex-col gap-6 text-text-heading"
-		style="background-color: #{CARDS_COLORS[3]};"
+		style="background-color: #{CARDS_COLORS[2]};"
 		method="POST"
 		use:enhance={() => {
 			isSendingForm = true;
@@ -24,7 +24,7 @@
 			};
 		}}
 	>
-		<h1 class="text-inherit text-3xl font-bold">Log-in</h1>
+		<h1 class="text-inherit text-3xl font-bold">Sign-in</h1>
 		<input
 			type="text"
 			class="px-6 py-3 text-base font-medium rounded-full bg-neutral-800 w-full text-text-heading-dark placeholder:text-text-body focus:outline-0 outline-0"
@@ -46,15 +46,15 @@
 			{#if isSendingForm}
 				<Spinner />
 			{/if}
-			Log-in
+			Sign-in
 		</button>
 
-		{#if form?.success == false}
+		{#if form?.error}
 			<div class="px-6 py-2 rounded-full bg-red-600 text-text-heading-dark font-semibold text-base">
-				{form.message}
+				{form.error}
 			</div>
 		{/if}
 
-		<a href="/sign-in" class="text-text-body underline underline-offset-2">No account yet ?</a>
+		<a href="/log-in" class="text-text-body underline underline-offset-2">Already an account ?</a>
 	</form>
 </div>

@@ -1,5 +1,3 @@
-import { textWrapPlugin } from './plugins.tailwind.js';
-
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./**/*.{html,js,svelte,md,svx,mdx}', '!./node_modules/**'],
@@ -22,14 +20,7 @@ export default {
 					DEFAULT: 'theme(colors.white)',
 					dark: 'theme(colors.neutral.950)'
 				}
-			},
-			borderColor: {
-				main: {
-					DEFAULT: 'theme(colors.neutral.300/50)',
-					dark: 'theme(colors.neutral.800)'
-				}
 			}
 		}
-	},
-	plugins: [textWrapPlugin]
+	}
 };

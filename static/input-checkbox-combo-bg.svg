@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="40.049728mm"
+   height="20.000002mm"
+   viewBox="0 0 40.049728 20.000002"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (1:1.3.2+202404261509+091e20ef0f)"
+   sodipodi:docname="input-checkbox-combo-bg.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     inkscape:zoom="8"
+     inkscape:cx="91"
+     inkscape:cy="54.4375"
+     inkscape:window-width="2560"
+     inkscape:window-height="1364"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <circle
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.5"
+       id="path1"
+       cx="10"
+       cy="10"
+       r="10"
+       inkscape:export-filename="input-checkbox-combo-bg.svg"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <path
+       style="fill:#ffffff;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.5"
+       d="M 39.950276,19.999879 C 34.427497,19.972419 29.972663,15.473055 30.000126,9.9502762 30.027586,4.4274973 34.52695,-0.0273367 40.049729,1.2629753e-4"
+       id="path1-5" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.5"
+       d="m 17.42,10.1 c 0,0 0.05912,-5.5119003 0,-6.8 1.126297,1.497621 2.653512,4.2268115 7.580736,4.3 3.954937,0.058746 6.294937,-2.9197064 7.580736,-4.3 0.01244,1.3452021 0,6.8 0,6.8"
+       id="path3"
+       sodipodi:nodetypes="ccscc" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.5"
+       d="m 17.42,9.9 c 0,0 0.05912,5.5119 0,6.8 1.126297,-1.497621 2.653512,-4.226812 7.580736,-4.3 3.954937,-0.05875 6.294937,2.919706 7.580736,4.3 0.01244,-1.345202 0,-6.8 0,-6.8"
+       id="path3-7"
+       sodipodi:nodetypes="ccscc" />
+  </g>
+</svg>
