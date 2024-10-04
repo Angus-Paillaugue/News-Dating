@@ -51,7 +51,7 @@ export const actions = {
 			secure: false
 		});
 
-		throw redirect(303, '/');
+		throw redirect(303, '/app');
 	}
 };
 

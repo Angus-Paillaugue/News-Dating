@@ -43,7 +43,7 @@ export async function POST({ request, locals }) {
 		await db.query('COMMIT;');
 	} catch (error) {
 		await db.query('ROLLBACK;');
-		throw error;
+		return json({ success: false, message: 'Error updating categories: ' + error }, { status: 500 });
 	} finally {
 		await db.end();
 	}

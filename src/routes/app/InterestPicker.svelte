@@ -2,18 +2,19 @@
 	import { scale, fade, fly } from 'svelte/transition';
 	import { CARDS_COLORS } from '$lib/constants';
 	import { showNavbar } from '$lib/stores';
-	import { cn } from '$lib/utils';
+	import { cn, accordion } from '$lib/utils';
 	import { Check } from '$lib/components/icons';
 	import { quintOut } from 'svelte/easing';
 	import { Button, Spinner } from '$lib/components';
 
 	const COLOR = CARDS_COLORS[2];
-	let { visible = $bindable(false), categories = $bindable([]), allCategories } = $props();
+	let { visible = $bindable(false), categories = $bindable([]), allCategories, onchange } = $props();
 	let initialCategories = JSON.parse(JSON.stringify(categories));
 	let isSavingCategories = $state(false);
 	let hasUnsavedChanges = $state(false);
 	let displayedCategories = $state(allCategories);
 	let languageFilterValue = $state('all');
+	let error = $state(null);
 	const languages = new Set(allCategories.map((c) => c.lang));
 
 	$effect(() => {
@@ -46,7 +47,7 @@
 			return;
 		}
 		isSavingCategories = true;
-		await fetch('/api/updateCategories', {
+		const res = await fetch('/api/updateCategories', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -54,8 +55,15 @@
 			body: JSON.stringify({ categories })
 		});
 		isSavingCategories = false;
-		visible = false;
-		initialCategories = JSON.parse(JSON.stringify(categories));
+		if(res.ok) {
+			initialCategories = JSON.parse(JSON.stringify(categories));
+			hasUnsavedChanges = false;
+			visible = false;
+			onchange();
+		}else {
+			const data = await res.json();
+			error = data.message;
+		}
 	}
 </script>
 
@@ -144,30 +152,38 @@
 						{/each}
 					</div>
 				</div>
-				<!-- Save button -->
-				<Button
-					class="h-12 disabled:opacity-100 disabled:bg-neutral-600 mt-6 relative overflow-hidden"
-					onclick={saveCategories}
-				>
-					{#if !hasUnsavedChanges}
-						<div
-							transition:fly={{ y: '100%', duration: 400, opacity: 0 }}
-							class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
-						>
-							Close
+				<div class="flex flex-col mt-4 gap-2">
+					<div class="" use:accordion={error || categories.length === 0}>
+						<div class="px-6 py-2 rounded-full bg-red-600/50 text-text-heading-dark font-semibold text-base">
+							{categories.length === 0 ? 'Please subscribe to at least one category feed !' : error}
 						</div>
-					{:else}
-						<div
-							transition:fly={{ y: '100%', duration: 400, opacity: 0 }}
-							class="flex flex-row gap-4 items-center absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
-						>
-							{#if isSavingCategories}
-								<Spinner class="size-6" />
-							{/if}
-							Save
-						</div>
-					{/if}
-				</Button>
+					</div>
+					<!-- Save button -->
+					<Button
+						class="h-12 disabled:opacity-100 disabled:bg-neutral-600 relative overflow-hidden"
+						onclick={saveCategories}
+						disabled={categories.length === 0}
+					>
+						{#if !hasUnsavedChanges || categories.length === 0}
+							<div
+								transition:fly={{ y: '100%', duration: 400, opacity: 0 }}
+								class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+							>
+								Close
+							</div>
+						{:else}
+							<div
+								transition:fly={{ y: '100%', duration: 400, opacity: 0 }}
+								class="flex flex-row gap-4 items-center absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+							>
+								{#if isSavingCategories}
+									<Spinner class="size-6" />
+								{/if}
+								Save
+							</div>
+						{/if}
+					</Button>
+				</div>
 			</div>
 		</div>
 	</div>

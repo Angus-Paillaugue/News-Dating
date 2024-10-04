@@ -31,14 +31,17 @@
 				`${PROXY_URL}/get?url=${encodeURIComponent(categories[activeSelectItem].url)}`
 			);
 			const xml = await response.json();
+			if(xml.status.http_code !== 200) {
+				error = "An error occurred while fetching the news";
+			}
 			const parser = new DOMParser();
-
 			const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
-
 			const itemsElement = xmlDoc.getElementsByTagName('item');
+
 			Array.from(itemsElement).forEach((item, index) => {
 				try {
 					const title = item.getElementsByTagName('title')[0].firstChild.nodeValue;
+
 					const url = item.getElementsByTagName('link')[0].firstChild.nodeValue;
 					const description = item.getElementsByTagName('description')[0].firstChild.nodeValue;
 					const date = item.getElementsByTagName('pubDate')[0].firstChild.nodeValue;
@@ -79,28 +82,35 @@
 		await fetchData();
 	});
 
-	function handleTouchStart(event, index) {
-		const touch = event.touches[0];
+	function handleTouchStart(event) {
+		const index = activeCardIndex;
+		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
 		items[index].startX = touch.clientX;
 		items[index].currentX = touch.clientX;
 	}
 
-	function handleTouchMove(event, index) {
-		const touch = event.touches[0];
+	function handleTouchMove(event) {
+		const index = activeCardIndex;
+		if(!items[index]?.startX) return;
+
+		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
 		items[index].currentX = touch.clientX;
 		const diffX = items[index].currentX - items[index].startX;
 		const rotation = diffX / CARD_ROTATION_FACTOR;
 		items[index].transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
 	}
 
-	function handleTouchEnd(event, index, article) {
+	function handleTouchEnd(event) {
+		const index = activeCardIndex;
+		if(!items[index]?.startX) return;
+
 		const diffX = items[index].currentX - items[index].startX;
 		if (Math.abs(diffX) > event.target.clientWidth / 4) {
 			// If swipe right
 			if (diffX > 0) {
-				fsArticleProps.url = article.url;
+				fsArticleProps.url = items[activeCardIndex].url;
 				fsArticleProps.visible = true;
-				fsArticleProps.color = article.color;
+				fsArticleProps.color = items[activeCardIndex].color;
 			}
 			const duration = window.innerWidth / 2 + 225;
 			const endValue = diffX > 0 ? duration : -duration;
@@ -108,10 +118,11 @@
 			items[index].transitionDuration = duration;
 			items[index].transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
 			items[index].opacity = 0;
-			activeCardIndex = index;
+			activeCardIndex = index + 1;
 		} else {
 			items[index].transform = 'translateX(0) rotate(0)';
 		}
+		items[index].startX = null;
 	}
 </script>
 
@@ -119,7 +130,9 @@
 	<title>News</title>
 </svelte:head>
 
-<InterestPicker bind:visible={interestPickerVisible} bind:categories {allCategories} />
+<svelte:window onmousemove={handleTouchMove} />
+
+<InterestPicker bind:visible={interestPickerVisible} bind:categories {allCategories} onchange={() => {activeSelectItem = 0; fetchData()}} />
 
 <Article
 	url={fsArticleProps.url}
@@ -135,7 +148,7 @@
 			<h1 class="text-xl font-extrabold">News</h1>
 			<!-- Open categories modal button -->
 			<Dropdown align="end">
-				<Dropdown.Trigger class="rounded-full border border-neutral-500/50 p-1">
+				<Dropdown.Trigger class="rounded-full border border-neutral-500/50 p-1.5">
 					<GridBorder class="size-6 text-text-heading-dark" />
 				</Dropdown.Trigger>
 				{#snippet items()}
@@ -144,7 +157,7 @@
 							interestPickerVisible = true;
 						}}>Categories</Dropdown.Item
 					>
-					<Dropdown.Item href="/dashboard">Account</Dropdown.Item>
+					<Dropdown.Item href="/app/dashboard">Account</Dropdown.Item>
 				{/snippet}
 			</Dropdown>
 		</div>
@@ -168,16 +181,7 @@
 
 	<!-- Main content -->
 	<div class="flex grow flex-col items-center justify-center relative">
-		<!-- If any error was thrown during the fetching process -->
-		{#if error}
-			<div
-				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-row gap-4 text-text-heading items-center"
-				style="background-color: #{CARDS_COLORS[0]};"
-			>
-				<CircleX class="size-6 shrink-0 text-red-600" />
-				<h1 class="text-xl font-medium text-inherit">{error}</h1>
-			</div>
-		{:else if isLoading}
+		{#if isLoading}
 			<!-- If is fetching news and parsing them -->
 			<Spinner class="size-8" />
 		{:else if activeCardIndex === items.length - 1}
@@ -195,21 +199,34 @@
 					Change category
 				</Button>
 			</div>
-		{:else}
+		{:else if items.length > 0}
 			<!-- Display news cards -->
 			{#each items as article, i}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] trconsole.logsition-all"
+					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] transition-all"
 					style="z-index: {maxZIndex - i - 1}; transform: {article.transform ||
 						'translateX(0) rotate(0)'}; transition-duration: {article.transitionDuration ??
 						'75'}ms; opacity: {article.opacity ?? 1};"
-					ontouchstart={(event) => handleTouchStart(event, i)}
-					ontouchmove={(event) => handleTouchMove(event, i)}
-					ontouchend={(event) => handleTouchEnd(event, i, article)}
+					ontouchstart={handleTouchStart}
+					ontouchmove={handleTouchMove}
+					ontouchend={handleTouchEnd}
+					onmousedown={handleTouchStart}
+					onmouseup={handleTouchEnd}
+					onmouseleave={handleTouchEnd}
 				>
 					<Card {article} />
 				</div>
 			{/each}
+		{:else if error}
+			<!-- If any error was thrown during the fetching process -->
+			<div
+				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-row gap-4 text-text-heading items-center"
+				style="background-color: #{CARDS_COLORS[0]};"
+			>
+				<CircleX class="size-6 shrink-0 text-red-600" />
+				<h1 class="text-xl font-medium text-inherit">{error}</h1>
+			</div>
 		{/if}
 	</div>
 </div>

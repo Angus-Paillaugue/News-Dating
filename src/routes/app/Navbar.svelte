@@ -10,9 +10,9 @@
 	let activeNavLink = $state();
 
 	page.subscribe((value) => {
-		if (value.url.pathname === '/') {
+		if (value.url.pathname === '/app') {
 			activeNavLink = 'home';
-		} else if (value.url.pathname.startsWith('/bookmarks')) {
+		} else if (value.url.pathname.startsWith('/app/bookmarks')) {
 			activeNavLink = 'bookmarks';
 		}
 	});
@@ -26,8 +26,8 @@
 		<div class="flex flex-row gap-2 p-2 relative">
 			<img src="/navBg.svg" alt="" class="absolute inset-0 -z-10" />
 			<Button
-				href="/"
-				class={cn('size-14 p-2', activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800')}
+				href="/app"
+				class={cn('size-14 p-2 bg-neutral-700/50', activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800')}
 				aria-label="Home"
 			>
 				{#if activeNavLink === 'home'}
@@ -46,9 +46,9 @@
 				<h1 class="text-inherit text-4xl font-bold">Br</h1>
 			</Button>
 			<Button
-				href="/bookmarks"
+				href="/app/bookmarks"
 				class={cn(
-					'size-14 p-2',
+					'size-14 p-2 bg-neutral-700/50',
 					activeNavLink === 'bookmarks' && 'bg-neutral-100 text-neutral-800'
 				)}
 				aria-label="Bookmarks"

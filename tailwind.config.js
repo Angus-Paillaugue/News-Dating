@@ -1,3 +1,17 @@
+import plugin from 'tailwindcss/plugin';
+
+export const radialGradientPlugin = plugin(({ matchUtilities, theme }) => {
+	matchUtilities(
+		{
+			// map to bg-radient-[*]
+			'bg-radient': (value) => ({
+				'background-image': `radial-gradient(${value},var(--tw-gradient-stops))`
+			})
+		},
+		{ values: theme('radialGradients') }
+	);
+});
+
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./**/*.{html,js,svelte,md,svx,mdx}', '!./node_modules/**'],
@@ -22,5 +36,6 @@ export default {
 				}
 			}
 		}
-	}
+	},
+	plugins: [radialGradientPlugin]
 };

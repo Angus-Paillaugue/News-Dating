@@ -34,7 +34,7 @@ export const actions = {
 				maxAge: 60 * 60 * 24,
 				secure: false
 			});
-			throw redirect(307, '/');
+			throw redirect(307, '/app');
 		}
 		return fail(400, { error: 'Incorrect password!' });
 	}

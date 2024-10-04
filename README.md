@@ -1,10 +1,12 @@
-# Proxy
+# News Dating
+
+## Proxy
 
 You need to run a proxy server to be able to fetch the rss content from it's source. You can use the [AllOrigins](https://github.com/gnuns/allorigins) one (it's open-source).
 
 You can update the proxy's url in `$lib/constants.js` file under the `PROXY_URL` property.
 
-# Database
+## Database
 
 You need a database to store user's and their data. Run the following script to create the database and it's tables.
 
@@ -141,13 +143,14 @@ ALTER TABLE `userCategories`
 COMMIT;
 ```
 
-# Running
+## Running
 
 Just run `pnpm run dev` to serve the website.
 
-# TODO
+## TODO
 
 - [x] Add sign-up
 - [x] Add log-out
 - [x] Add account deletion
 - [ ] Add home page
+- [ ] Add internationalisation

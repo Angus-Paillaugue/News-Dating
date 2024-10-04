@@ -7,7 +7,8 @@
 
 	const styleClasses = {
 		default: 'bg-neutral-800 text-text-heading-dark rounded-full',
-		danger: ' bg-red-600 text-text-heading-dark rounded-xl'
+		danger: ' bg-red-600 text-text-heading-dark rounded-xl',
+		secondary: 'bg-white text-text-heading rounded-full',
 	};
 </script>
 
