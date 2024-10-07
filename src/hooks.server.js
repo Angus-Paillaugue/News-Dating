@@ -6,7 +6,6 @@ export const handle = async ({ event, resolve }) => {
 
 	const token = cookies.get('token') || false;
 
-
 	if (token) {
 		const user = await auth(token);
 		if (!user.error) {
@@ -21,7 +20,7 @@ export const handle = async ({ event, resolve }) => {
 		locals.user = undefined;
 		throw redirect(307, '/log-in');
 	}
-	if ((!url.pathname.startsWith('/app') && !url.pathname.startsWith('/api')) && locals.user) {
+	if (!url.pathname.startsWith('/app') && !url.pathname.startsWith('/api') && locals.user) {
 		throw redirect(307, '/app');
 	}
 	return resolve(event);

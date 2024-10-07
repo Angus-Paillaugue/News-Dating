@@ -8,19 +8,32 @@
 	import { Button, Spinner } from '$lib/components';
 
 	const COLOR = CARDS_COLORS[2];
-	let { visible = $bindable(false), categories = $bindable([]), allCategories, onchange } = $props();
+	let {
+		visible = $bindable(false),
+		categories = $bindable([]),
+		allCategories,
+		onchange
+	} = $props();
 	let initialCategories = JSON.parse(JSON.stringify(categories));
 	let isSavingCategories = $state(false);
 	let hasUnsavedChanges = $state(false);
 	let displayedCategories = $state(allCategories);
 	let languageFilterValue = $state('all');
+	let activeProviderIndex = $state(0);
 	let error = $state(null);
-	const languages = new Set(allCategories.map((c) => c.lang));
+
+	let languages = $state([]);
+	$effect(() => {
+		const langs = allCategories.map((p) => p.categories.map((c) => c.lang)).flat();
+		languages = [...new Set(langs)];
+	});
 
 	$effect(() => {
+		const newCategoryIds = categories.map((p) => p.categories.map((c) => c.id)).flat();
+		const oldCategoryIds = initialCategories.map((p) => p.categories.map((c) => c.id)).flat();
 		hasUnsavedChanges =
-			categories.some((c) => !initialCategories.some((ic) => ic.id === c.id)) ||
-			initialCategories.some((ic) => !categories.some((c) => c.id === ic.id));
+			newCategoryIds.some((id) => !oldCategoryIds.includes(id)) ||
+			oldCategoryIds.some((id) => !newCategoryIds.includes(id));
 	});
 
 	$effect(() => {
@@ -37,7 +50,12 @@
 		if (languageFilterValue === 'all') {
 			displayedCategories = allCategories;
 		} else {
-			displayedCategories = allCategories.filter((c) => c.lang === languageFilterValue);
+			displayedCategories = allCategories.map((provider) => {
+				return {
+					...provider,
+					categories: provider.categories.filter((c) => c.lang === languageFilterValue)
+				};
+			});
 		}
 	});
 
@@ -52,15 +70,17 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ categories })
+			body: JSON.stringify({
+				categories: categories.map((p) => p.categories.map((c) => c.id)).flat()
+			})
 		});
 		isSavingCategories = false;
-		if(res.ok) {
+		if (res.ok) {
 			initialCategories = JSON.parse(JSON.stringify(categories));
 			hasUnsavedChanges = false;
 			visible = false;
 			onchange();
-		}else {
+		} else {
 			const data = await res.json();
 			error = data.message;
 		}
@@ -88,8 +108,6 @@
 			<div class="p-4 md:p-6 flex w-full flex-row justify-start gap-8 items-center">
 				<h1 class="text-text-heading font-bold text-2xl">Categories</h1>
 				<select
-					name=""
-					id=""
 					class="ml-auto bg-white text-text-body text-sm rounded-xl block p-2.5"
 					bind:value={languageFilterValue}
 				>
@@ -99,13 +117,29 @@
 					{/each}
 				</select>
 			</div>
+			<div class="flex flex-row gap-4 items-center overflow-x-auto no-scrollbar px-4 shrink-0 mb-4">
+				{#each displayedCategories as provider, i}
+					<button
+						class={cn(
+							'shrink-0 font-medium capitalize px-2 py-2 rounded-full text-text-heading',
+							activeProviderIndex === i && 'bg-white'
+						)}
+						onclick={() => (activeProviderIndex = i)}
+					>
+						{provider.name}
+					</button>
+				{/each}
+			</div>
 
 			<!-- Categories list -->
 			<div class="grow flex overflow-y-hidden w-full flex-col p-6 pt-0">
 				<div class="overflow-y-auto no-scrollbar grow rounded-3xl flex flex-col relative">
 					<div class="flex flex-col gap-4 grow">
-						{#each displayedCategories as category}
-							{@const isInUsersCategories = categories.some((c) => c.id === category.id)}
+						{#each displayedCategories[activeProviderIndex].categories as category}
+							{@const isInUsersCategories = categories
+								.map((p) => p.categories.map((c) => c.id))
+								.flat()
+								.includes(category.id)}
 							<div class="w-full relative flex flex-row ietms-center">
 								<img
 									src="/input-checkbox-combo-bg.svg"
@@ -123,10 +157,30 @@
 													: 'border-neutral-300/50 bg-white'
 											)}
 											onclick={() => {
+												const newItem = allCategories[activeProviderIndex].categories.find(
+													(c) => c.id === category.id
+												);
 												if (isInUsersCategories) {
-													categories = categories.filter((c) => c.id !== category.id);
+													for (let i = 0; i < categories.length; i++) {
+														const index = categories[i].categories.findIndex(
+															(c) => c.id === category.id
+														);
+														if (index !== -1) {
+															categories[i].categories.splice(index, 1);
+															break;
+														}
+													}
 												} else {
-													categories = [...categories, category];
+													const providerExists = categories
+														.map((p) => p.id)
+														.includes(allCategories[activeProviderIndex].id);
+													if (!providerExists) {
+														const provider = allCategories[activeProviderIndex];
+														provider.categories = [newItem];
+														categories.push(provider);
+													} else {
+														categories[activeProviderIndex].categories.push(newItem);
+													}
 												}
 											}}
 										>
@@ -138,9 +192,9 @@
 										</button>
 									</div>
 									<div
-										class="bg-white grow rounded-r-full flex flex-row items-center justify-between pr-4 h-full"
+										class="bg-white grow rounded-r-full flex flex-row items-center justify-between pr-4 h-full gap-4"
 									>
-										<p class="text-base font-medium">{category.label}</p>
+										<p class="text-base font-medium grow">{category.label}</p>
 										<div
 											class="bg-neutral-800 text-white px-3 py-0.5 text-center text-xl font-bold rounded-full"
 										>
@@ -154,7 +208,9 @@
 				</div>
 				<div class="flex flex-col mt-4 gap-2">
 					<div class="" use:accordion={error || categories.length === 0}>
-						<div class="px-6 py-2 rounded-full bg-red-600/50 text-text-heading-dark font-semibold text-base">
+						<div
+							class="px-6 py-2 rounded-3xl bg-red-600/50 text-text-heading-dark font-semibold text-base"
+						>
 							{categories.length === 0 ? 'Please subscribe to at least one category feed !' : error}
 						</div>
 					</div>

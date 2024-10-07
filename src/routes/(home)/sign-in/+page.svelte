@@ -12,7 +12,9 @@
 	<title>Log-in</title>
 </svelte:head>
 
-<div class="bg-body-dark rounded-3xl w-full p-4 h-[calc(100vh-85px)] flex flex-col items-center justify-center relative">
+<div
+	class="bg-body-dark rounded-3xl w-full p-4 h-[calc(100vh-85px)] flex flex-col items-center justify-center relative"
+>
 	<form
 		class="max-w-md w-full rounded-3xl p-6 flex flex-col gap-6 text-text-heading"
 		style="background-color: #{CARDS_COLORS[2]};"

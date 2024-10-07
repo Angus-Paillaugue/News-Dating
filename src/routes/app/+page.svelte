@@ -13,7 +13,8 @@
 	let bookmarks = $state(data.bookmarks || []);
 	let categories = $state(data.categories || []);
 	const { allCategories } = data;
-	let activeSelectItem = $state(0);
+	let activeCategoryIndex = $state(0);
+	let activeProviderIndex = $state(0);
 	const maxZIndex = 9999;
 	let isLoading = $state(false);
 	let interestPickerVisible = $state(false);
@@ -26,13 +27,15 @@
 		items = [];
 		isLoading = true;
 		error = null;
+
+		const provider = allCategories[activeProviderIndex];
+		const category = provider.categories[activeCategoryIndex];
+
 		try {
-			const response = await fetch(
-				`${PROXY_URL}/get?url=${encodeURIComponent(categories[activeSelectItem].url)}`
-			);
+			const response = await fetch(`${PROXY_URL}/get?url=${encodeURIComponent(category.url)}`);
 			const xml = await response.json();
-			if(xml.status.http_code !== 200) {
-				error = "An error occurred while fetching the news";
+			if (xml.status.http_code !== 200) {
+				error = 'An error occurred while fetching the news';
 			}
 			const parser = new DOMParser();
 			const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
@@ -40,15 +43,16 @@
 
 			Array.from(itemsElement).forEach((item, index) => {
 				try {
-					const title = item.getElementsByTagName('title')[0].firstChild.nodeValue;
-
-					const url = item.getElementsByTagName('link')[0].firstChild.nodeValue;
-					const description = item.getElementsByTagName('description')[0].firstChild.nodeValue;
-					const date = item.getElementsByTagName('pubDate')[0].firstChild.nodeValue;
-					let img = item.getElementsByTagName('media:content')[0]?.getAttribute('url');
-					if (!img) {
-						img = item.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
-					}
+					// Use the dynamic selectors to extract the data
+					const title = stripHtml(
+						item.getElementsByTagName(provider.titleSelector)[0]?.firstChild.nodeValue
+					);
+					const url = item.getElementsByTagName(provider.urlSelector)[0]?.firstChild.nodeValue;
+					const description = stripHtml(
+						item.getElementsByTagName(provider.descriptionSelector)[0]?.firstChild.nodeValue
+					);
+					const date = item.getElementsByTagName(provider.dateSelector)[0]?.firstChild.nodeValue;
+					const img = item.getElementsByTagName(provider.imgSelector)[0]?.getAttribute('url');
 
 					const bookmark = bookmarks.find((b) => b.url === url);
 
@@ -82,6 +86,12 @@
 		await fetchData();
 	});
 
+	function stripHtml(html) {
+		let tmp = document.createElement('DIV');
+		tmp.innerHTML = html;
+		return tmp.textContent || tmp.innerText || '';
+	}
+
 	function handleTouchStart(event) {
 		const index = activeCardIndex;
 		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
@@ -91,7 +101,7 @@
 
 	function handleTouchMove(event) {
 		const index = activeCardIndex;
-		if(!items[index]?.startX) return;
+		if (!items[index]?.startX) return;
 
 		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
 		items[index].currentX = touch.clientX;
@@ -102,7 +112,7 @@
 
 	function handleTouchEnd(event) {
 		const index = activeCardIndex;
-		if(!items[index]?.startX) return;
+		if (!items[index]?.startX) return;
 
 		const diffX = items[index].currentX - items[index].startX;
 		if (Math.abs(diffX) > event.target.clientWidth / 4) {
@@ -132,7 +142,15 @@
 
 <svelte:window onmousemove={handleTouchMove} />
 
-<InterestPicker bind:visible={interestPickerVisible} bind:categories {allCategories} onchange={() => {activeSelectItem = 0; fetchData()}} />
+<InterestPicker
+	bind:visible={interestPickerVisible}
+	bind:categories
+	{allCategories}
+	onchange={() => {
+		activeCategoryIndex = 0;
+		fetchData();
+	}}
+/>
 
 <Article
 	url={fsArticleProps.url}
@@ -162,18 +180,34 @@
 			</Dropdown>
 		</div>
 
-		<!-- Categories list -->
+		<!-- Providers list -->
 		<div
 			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8 mt-8"
 			style="z-index: {maxZIndex};"
 		>
-			{#each categories as category, i}
+			{#each categories as provider, i}
 				<button
 					class={cn(
 						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
-						activeSelectItem === i && 'text-2xl font-semibold text-text-heading-dark'
+						activeProviderIndex === i && 'text-2xl font-semibold text-text-heading-dark'
 					)}
-					onclick={() => (activeSelectItem = i)}>{category.label}</button
+					onclick={() => (activeProviderIndex = i)}>{provider.name}</button
+				>
+			{/each}
+		</div>
+
+		<!-- Categories list -->
+		<div
+			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8 mt-2"
+			style="z-index: {maxZIndex};"
+		>
+			{#each categories[activeProviderIndex].categories as category, i}
+				<button
+					class={cn(
+						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
+						activeCategoryIndex === i && 'text-2xl font-semibold text-text-heading-dark'
+					)}
+					onclick={() => (activeCategoryIndex = i)}>{category.label}</button
 				>
 			{/each}
 		</div>
@@ -193,7 +227,7 @@
 				<h1 class="text-xl font-medium text-inherit">You reached the end !</h1>
 				<Button
 					onclick={() => {
-						activeSelectItem = (activeSelectItem + 1) % categories.length;
+						activeCategoryIndex = (activeCategoryIndex + 1) % categories.length;
 					}}
 				>
 					Change category

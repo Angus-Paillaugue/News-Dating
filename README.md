@@ -11,6 +11,15 @@ You can update the proxy's url in `$lib/constants.js` file under the `PROXY_URL`
 You need a database to store user's and their data. Run the following script to create the database and it's tables.
 
 ```sql
+-- phpMyAdmin SQL Dump
+-- version 5.2.1deb3
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Oct 07, 2024 at 02:59 PM
+-- Server version: 8.0.39-0ubuntu0.24.04.2
+-- PHP Version: 8.3.6
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -18,21 +27,26 @@ SET time_zone = "+00:00";
 --
 -- Database: `rss-news`
 --
+CREATE DATABASE IF NOT EXISTS `rss-news` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `rss-news`;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `bookmarks`
 --
-CREATE TABLE `bookmarks` (
-  `id` int NOT NULL,
+
+CREATE TABLE IF NOT EXISTS `bookmarks` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `userId` int NOT NULL,
   `url` varchar(500) NOT NULL,
   `title` varchar(150) NOT NULL,
   `description` varchar(500) NOT NULL,
   `img` varchar(1000) NOT NULL,
   `color` char(6) NOT NULL,
-  `date` datetime NOT NULL
+  `date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_userId` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -40,34 +54,45 @@ CREATE TABLE `bookmarks` (
 --
 -- Table structure for table `categories`
 --
-CREATE TABLE `categories` (
-  `id` int NOT NULL,
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `label` varchar(50) NOT NULL,
   `url` varchar(255) NOT NULL,
   `lang` char(2) NOT NULL,
-  `isDefault` tinyint(1) NOT NULL DEFAULT '0'
+  `isDefault` tinyint(1) NOT NULL DEFAULT '0',
+  `providerId` int NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `categories`
+-- Table structure for table `providers`
 --
-INSERT INTO `categories` (`id`, `label`, `url`, `lang`, `isDefault`) VALUES
-(1, 'France', 'https://www.france24.com/fr/france/rss', 'FR', 1),
-(2, 'World', 'https://www.france24.com/fr/rss', 'FR', 1),
-(3, 'Business/Tech', 'https://www.france24.com/en/business/rss', 'EN', 1),
-(4, 'Sports', 'https://www.france24.com/fr/sports/rss', 'FR', 1),
-(5, 'Culture', 'https://www.france24.com/fr/culture/rss', 'FR', 0),
-(6, 'Earth', 'https://www.france24.com/fr/earth/rss', 'FR', 0),
-(7, 'Health', 'https://www.france24.com/fr/health/rss', 'FR', 0);
+
+CREATE TABLE IF NOT EXISTS `providers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `titleSelector` varchar(100) NOT NULL,
+  `urlSelector` varchar(100) NOT NULL,
+  `descriptionSelector` varchar(100) NOT NULL,
+  `dateSelector` varchar(100) NOT NULL,
+  `imgSelector` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `userCategories`
 --
-CREATE TABLE `userCategories` (
+
+CREATE TABLE IF NOT EXISTS `userCategories` (
   `userId` int NOT NULL,
-  `categoryId` int NOT NULL
+  `categoryId` int NOT NULL,
+  PRIMARY KEY (`userId`,`categoryId`),
+  KEY `categoryId` (`categoryId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -75,58 +100,17 @@ CREATE TABLE `userCategories` (
 --
 -- Table structure for table `users`
 --
-CREATE TABLE `users` (
-  `id` int NOT NULL,
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
-  `passwordHash` varchar(100) NOT NULL
+  `passwordHash` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
--- Indexes for table `bookmarks`
+-- Constraints for dumped tables
 --
-ALTER TABLE `bookmarks`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_userId` (`userId`);
-
---
--- Indexes for table `categories`
---
-ALTER TABLE `categories`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `userCategories`
---
-ALTER TABLE `userCategories`
-  ADD PRIMARY KEY (`userId`,`categoryId`),
-  ADD KEY `categoryId` (`categoryId`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
-
---
--- AUTO_INCREMENT for table `bookmarks`
---
-ALTER TABLE `bookmarks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
 
 --
 -- Constraints for table `bookmarks`

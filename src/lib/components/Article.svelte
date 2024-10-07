@@ -69,11 +69,13 @@
 			const pageContents = contentContainer.querySelectorAll(
 				'p:not(.o-self-promo p), h1, h2, h3, h4, h5, h6, img'
 			);
-			article.paragraphs = Array.from(pageContents).map((p) => {
-				if (p.tagName === 'IMG')
-					return { tag: p.tagName.toLowerCase(), content: p.getAttribute('src') };
-				return { tag: p.tagName.toLowerCase(), content: p.textContent };
-			});
+			article.paragraphs = Array.from(pageContents)
+				.map((p) => {
+					if (p.tagName === 'IMG')
+						return { tag: p.tagName.toLowerCase(), content: p.getAttribute('src') };
+					return { tag: p.tagName.toLowerCase(), content: p.textContent.trim() };
+				})
+				.filter((e) => e);
 		}
 		article.title = title;
 		article.date = new Date(date);

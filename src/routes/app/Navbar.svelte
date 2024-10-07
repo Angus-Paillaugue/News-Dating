@@ -27,7 +27,10 @@
 			<img src="/navBg.svg" alt="" class="absolute inset-0 -z-10" />
 			<Button
 				href="/app"
-				class={cn('size-14 p-2 bg-neutral-700/50', activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800')}
+				class={cn(
+					'size-14 p-2 bg-neutral-700/50',
+					activeNavLink === 'home' && 'bg-neutral-100 text-neutral-800'
+				)}
 				aria-label="Home"
 			>
 				{#if activeNavLink === 'home'}

@@ -6,6 +6,8 @@ export async function POST({ request, locals }) {
 	const { user } = locals;
 	const { categories: newCategories } = await request.json();
 	const db = await createConnection();
+
+	// Fetch initial categories
 	const [initialCategories] =
 		(await db.query(
 			`
@@ -17,33 +19,42 @@ export async function POST({ request, locals }) {
 			[user.id]
 		)) ?? [];
 
-	const initialCategoriesMap = new Map(initialCategories.map((c) => [c.id, c]));
+	// Create sets for quicker comparisons
+	const newCategorySet = new Set(newCategories);
+	const initialCategorySet = new Set(initialCategories.map((category) => category.id));
 
-	const categoriesToInsert = newCategories.filter((c) => !initialCategoriesMap.has(c.id));
-	const categoriesToDelete = initialCategories.filter(
-		(c) => !newCategories.some((nc) => nc.id === c.id)
-	);
+	// Categories to insert (present in newCategories but not in initialCategories)
+	const categoriesToInsert = [...newCategorySet].filter((id) => !initialCategorySet.has(id));
+
+	// Categories to delete (present in initialCategories but not in newCategories)
+	const categoriesToDelete = [...initialCategorySet].filter((id) => !newCategorySet.has(id));
 
 	await db.query('START TRANSACTION;');
 
 	try {
-		for (const category of categoriesToInsert) {
+		// Insert new categories
+		for (const categoryId of categoriesToInsert) {
 			await db.query('INSERT INTO userCategories (userId, categoryId) VALUES (?, ?);', [
 				user.id,
-				category.id
+				categoryId
 			]);
 		}
-		for (const category of categoriesToDelete) {
+
+		// Delete old categories
+		for (const categoryId of categoriesToDelete) {
 			await db.query('DELETE FROM userCategories WHERE userId = ? AND categoryId = ?;', [
 				user.id,
-				category.id
+				categoryId
 			]);
 		}
 
 		await db.query('COMMIT;');
 	} catch (error) {
 		await db.query('ROLLBACK;');
-		return json({ success: false, message: 'Error updating categories: ' + error }, { status: 500 });
+		return json(
+			{ success: false, message: 'Error updating categories: ' + error },
+			{ status: 500 }
+		);
 	} finally {
 		await db.end();
 	}
