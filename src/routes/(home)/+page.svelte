@@ -17,6 +17,11 @@
 		document.body.style.setProperty('--br-weight', 700);
 	});
 
+	/**
+	 * Handles the touch start event.
+	 *
+	 * @param {TouchEvent} event - The touch event object.
+	 */
 	function handleTouchStart(event) {
 		const touch = (event?.touches && event?.touches[0]) ?? {
 			clientX: event.clientX,
@@ -28,6 +33,11 @@
 		heroCardData.startY = touch.clientY;
 	}
 
+	/**
+	 * Handles the touch move event.
+	 *
+	 * @param {TouchEvent} event - The touch event object.
+	 */
 	function handleTouchMove(event) {
 		if (!heroCardData.startX || !heroCardData.startY) return;
 		const touch = (event?.touches && event?.touches[0]) ?? {
@@ -42,6 +52,10 @@
 		heroCard.style.transform = `translateX(${diffX}px) translateY(${diffY}px) rotate(${rotation}deg)`;
 	}
 
+	/**
+	 * Handles the touch end event.
+	 * This function is triggered when a touch event ends.
+	 */
 	function handleTouchEnd() {
 		const _DURATION = 300;
 		const _BASE_DURATION = heroCard.style.transitionDuration;
@@ -70,7 +84,7 @@
 			<div class="flex flex-col max-lg:items-center gap-4">
 				<h1 class="text-2xl font-bold text-text-heading-dark">News Dating</h1>
 
-				<Button style="default" class="w-fit px-8" href="/log-in">Get started</Button>
+				<Button class="w-fit px-8" href="/log-in">Get started</Button>
 			</div>
 			<div class="w-full h-full flex flex-col items-center justify-center relative">
 				<div

@@ -9,6 +9,7 @@
 
 	let activeNavLink = $state();
 
+	// Set the active nav link based on the current page
 	page.subscribe((value) => {
 		if (value.url.pathname === '/app') {
 			activeNavLink = 'home';

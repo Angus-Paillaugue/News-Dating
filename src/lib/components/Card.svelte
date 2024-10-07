@@ -11,7 +11,7 @@
 	)}
 	style="background-color: #{article.color};"
 >
-	<div class="relative w-full h-full p-4 md:p-6 flex flex-col gap-4">
+	<div class="relative w-full h-full p-4 md:p-6 flex flex-col gap-4 select-none">
 		{#if article?.img}
 			<img
 				src={article.img}
@@ -22,13 +22,13 @@
 		{/if}
 		<header>
 			<h1
-				class="leading-8 md:leading-10 text-2xl md:text-3xl font-semibold text-inherit line-clamp-[8] select-none"
+				class="leading-8 md:leading-10 text-2xl md:text-3xl font-semibold text-inherit line-clamp-4 md:line-clamp-[8]"
 			>
 				{@html article.title}
 			</h1>
 		</header>
-		<time datetime={article.date} class="select-none">{formatDate(article.date)}</time>
-		<p class="line-clamp-4 md:line-clamp-6 break-words select-none">
+		<time datetime={article.date}>{formatDate(article.date)}</time>
+		<p class="line-clamp-4 md:line-clamp-6 break-words">
 			{@html article.description.split(' ').map(generateFormattedText).join(' ')}
 		</p>
 	</div>

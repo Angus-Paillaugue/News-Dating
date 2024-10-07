@@ -1,32 +1,43 @@
 <script>
 	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils';
 	import { Card, Spinner, Article } from '$lib/components';
 	import { CARDS_COLORS, PROXY_URL } from '$lib/constants';
-	import { CircleX, GridBorder } from '$lib/components/icons';
+	import { CircleX, GridBorder, Swap } from '$lib/components/icons';
 	import InterestPicker from './InterestPicker.svelte';
+	import ChangeCategory from './ChangeCategory.svelte';
 	import { Button, Dropdown } from '$lib/components';
+	import { browser } from '$app/environment';
+
+	const { data } = $props();
+	const { allCategories } = data;
+	const MAX_Z_INDEX = 9999;
+	const CARD_ROTATION_FACTOR = 6;
 
 	let items = $state([]);
-	const { data } = $props();
-	let fsArticleProps = $state({ visible: false, url: '', color: '' });
 	let bookmarks = $state(data.bookmarks || []);
 	let categories = $state(data.categories || []);
-	const { allCategories } = data;
+	let fsArticleProps = $state({ visible: false, url: '', color: '' });
 	let activeCategoryIndex = $state(0);
 	let activeProviderIndex = $state(0);
-	const maxZIndex = 9999;
+	let activeCardIndex = $state(null);
 	let isLoading = $state(false);
 	let interestPickerVisible = $state(false);
 	let error = $state(null);
-	let activeCardIndex = $state(null);
-	const CARD_ROTATION_FACTOR = 6;
+	let swapCategoryModalVisible = $state(false);
 
+	/**
+	 * Asynchronously fetches data from a specified source.
+	 *
+	 * @returns {Promise<any>} A promise that resolves with the fetched data.
+	 */
 	async function fetchData() {
-		if (!categories.length) return;
+		if (!categories.length || !browser) return;
 		items = [];
 		isLoading = true;
 		error = null;
+
+		localStorage.setItem('activeCategoryIndex', activeCategoryIndex);
+		localStorage.setItem('activeProviderIndex', activeProviderIndex);
 
 		const provider = allCategories[activeProviderIndex];
 		const category = provider.categories[activeCategoryIndex];
@@ -34,25 +45,27 @@
 		try {
 			const response = await fetch(`${PROXY_URL}/get?url=${encodeURIComponent(category.url)}`);
 			const xml = await response.json();
-			if (xml.status.http_code !== 200) {
-				error = 'An error occurred while fetching the news';
-			}
+			if (xml.status.http_code !== 200) error = 'An error occurred while fetching the news';
+
 			const parser = new DOMParser();
 			const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
 			const itemsElement = xmlDoc.getElementsByTagName('item');
 
 			Array.from(itemsElement).forEach((item, index) => {
 				try {
-					// Use the dynamic selectors to extract the data
 					const title = stripHtml(
-						item.getElementsByTagName(provider.titleSelector)[0]?.firstChild.nodeValue
+						item.getElementsByTagName(provider.previewTitleSelector)[0]?.firstChild.nodeValue
 					);
-					const url = item.getElementsByTagName(provider.urlSelector)[0]?.firstChild.nodeValue;
+					const url = item.getElementsByTagName(provider.previewUrlSelector)[0]?.firstChild
+						.nodeValue;
 					const description = stripHtml(
-						item.getElementsByTagName(provider.descriptionSelector)[0]?.firstChild.nodeValue
+						item.getElementsByTagName(provider.previewDescriptionSelector)[0]?.firstChild.nodeValue
 					);
-					const date = item.getElementsByTagName(provider.dateSelector)[0]?.firstChild.nodeValue;
-					const img = item.getElementsByTagName(provider.imgSelector)[0]?.getAttribute('url');
+					const date = item.getElementsByTagName(provider.previewDateSelector)[0]?.firstChild
+						.nodeValue;
+					const img = item
+						.getElementsByTagName(provider.previewImgSelector)[0]
+						?.getAttribute('url');
 
 					const bookmark = bookmarks.find((b) => b.url === url);
 
@@ -78,20 +91,33 @@
 		activeCardIndex = 0;
 	}
 
+	// Fetch news on mount
 	onMount(async () => {
+		activeCategoryIndex = parseInt(localStorage.getItem('activeCategoryIndex')) || 0;
+		activeProviderIndex = parseInt(localStorage.getItem('activeProviderIndex')) || 0;
 		await fetchData();
 	});
-
 	$effect(async () => {
 		await fetchData();
 	});
 
+	/**
+	 * Strips HTML tags from a given string.
+	 *
+	 * @param {string} html - The HTML string to be stripped of tags.
+	 * @returns {string} - The plain text string with HTML tags removed.
+	 */
 	function stripHtml(html) {
 		let tmp = document.createElement('DIV');
 		tmp.innerHTML = html;
 		return tmp.textContent || tmp.innerText || '';
 	}
 
+	/**
+	 * Handles the touch start event of the swipeable cards.
+	 *
+	 * @param {Event} event - The touch start event object.
+	 */
 	function handleTouchStart(event) {
 		const index = activeCardIndex;
 		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
@@ -99,6 +125,11 @@
 		items[index].currentX = touch.clientX;
 	}
 
+	/**
+	 * Handles the touch move event of the swipeable cards.
+	 *
+	 * @param {TouchEvent} event - The touch move event object.
+	 */
 	function handleTouchMove(event) {
 		const index = activeCardIndex;
 		if (!items[index]?.startX) return;
@@ -110,6 +141,11 @@
 		items[index].transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
 	}
 
+	/**
+	 * Handles the touch end event of the swipeable cards.
+	 *
+	 * @param {Event} event - The touch end event object.
+	 */
 	function handleTouchEnd(event) {
 		const index = activeCardIndex;
 		if (!items[index]?.startX) return;
@@ -121,6 +157,8 @@
 				fsArticleProps.url = items[activeCardIndex].url;
 				fsArticleProps.visible = true;
 				fsArticleProps.color = items[activeCardIndex].color;
+			} else {
+				activeCardIndex++;
 			}
 			const duration = window.innerWidth / 2 + 225;
 			const endValue = diffX > 0 ? duration : -duration;
@@ -128,7 +166,6 @@
 			items[index].transitionDuration = duration;
 			items[index].transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
 			items[index].opacity = 0;
-			activeCardIndex = index + 1;
 		} else {
 			items[index].transform = 'translateX(0) rotate(0)';
 		}
@@ -152,16 +189,30 @@
 	}}
 />
 
+<ChangeCategory
+	bind:visible={swapCategoryModalVisible}
+	bind:categories
+	bind:activeCategoryIndex
+	bind:activeProviderIndex
+/>
+
 <Article
 	url={fsArticleProps.url}
 	bind:bookmarks
 	bind:color={fsArticleProps.color}
 	bind:visible={fsArticleProps.visible}
+	bind:provider={allCategories[activeProviderIndex]}
+	title={items[activeCardIndex]?.title}
+	date={items[activeCardIndex]?.date}
+	img={items[activeCardIndex]?.img}
+	onclose={() => {
+		activeCardIndex++;
+	}}
 />
 
-<div class="h-full grow flex flex-col pb-[4.5rem] sm:pb-28 overflow-hidden">
+<div class="h-full grow flex flex-col pb-[5.5rem] overflow-hidden">
 	<!-- Heading -->
-	<div class="shrink-0 p-4 max-w-md mx-auto w-full">
+	<header class="shrink-0 p-4 max-w-md mx-auto w-full">
 		<div class="flex flex-row justify-between items-center">
 			<h1 class="text-xl font-extrabold">News</h1>
 			<!-- Open categories modal button -->
@@ -180,38 +231,20 @@
 			</Dropdown>
 		</div>
 
-		<!-- Providers list -->
-		<div
-			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8 mt-8"
-			style="z-index: {maxZIndex};"
-		>
-			{#each categories as provider, i}
-				<button
-					class={cn(
-						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
-						activeProviderIndex === i && 'text-2xl font-semibold text-text-heading-dark'
-					)}
-					onclick={() => (activeProviderIndex = i)}>{provider.name}</button
-				>
-			{/each}
-		</div>
+		<hr class="my-4 border-neutral-800" />
 
-		<!-- Categories list -->
-		<div
-			class="flex flex-row overflow-x-auto no-scrollbar flex-nowrap gap-8 mt-2"
-			style="z-index: {maxZIndex};"
-		>
-			{#each categories[activeProviderIndex].categories as category, i}
-				<button
-					class={cn(
-						'shrink-0 font-medium transition-[font-size] capitalize text-text-body-dark',
-						activeCategoryIndex === i && 'text-2xl font-semibold text-text-heading-dark'
-					)}
-					onclick={() => (activeCategoryIndex = i)}>{category.label}</button
-				>
-			{/each}
+		<div class="flex flex-row items-center gap-4">
+			<h2 class="w-fit capitalize">
+				<b>{categories[activeProviderIndex].name}</b> / {categories[activeProviderIndex].categories[
+					activeCategoryIndex
+				].label}
+			</h2>
+
+			<Button variant="ghost" class="size-8 p-0" onclick={() => (swapCategoryModalVisible = true)}>
+				<Swap class="size-6 text-text-heading-dark" />
+			</Button>
 		</div>
-	</div>
+	</header>
 
 	<!-- Main content -->
 	<div class="flex grow flex-col items-center justify-center relative">
@@ -239,7 +272,7 @@
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] transition-all"
-					style="z-index: {maxZIndex - i - 1}; transform: {article.transform ||
+					style="z-index: {MAX_Z_INDEX - i - 1}; transform: {article.transform ||
 						'translateX(0) rotate(0)'}; transition-duration: {article.transitionDuration ??
 						'75'}ms; opacity: {article.opacity ?? 1};"
 					ontouchstart={handleTouchStart}

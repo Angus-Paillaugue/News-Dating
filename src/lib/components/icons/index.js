@@ -9,3 +9,4 @@ export { default as GridBorder } from './GridBorder.svelte';
 export { default as HomeBorder } from './HomeBorder.svelte';
 export { default as HomeFill } from './HomeFill.svelte';
 export { default as Share } from './Share.svelte';
+export { default as Swap } from './Swap.svelte';

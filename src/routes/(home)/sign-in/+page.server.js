@@ -55,6 +55,6 @@ export const actions = {
 	}
 };
 
-function generateAccessToken(email) {
-	return jwt.sign(email, AUTH_TOKEN_SECRET);
+function generateAccessToken(username) {
+	return jwt.sign(username, AUTH_TOKEN_SECRET);
 }

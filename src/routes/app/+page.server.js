@@ -13,11 +13,13 @@ export async function load({ locals }) {
 		SELECT
     	p.id,
 			p.name,
-			p.titleSelector,
-			p.urlSelector,
-			p.descriptionSelector,
-			p.dateSelector,
-			p.imgSelector,
+			p.previewTitleSelector,
+			p.previewUrlSelector,
+			p.previewDescriptionSelector,
+			p.previewDateSelector,
+			p.previewImgSelector,
+			p.articleContentContainerSelector,
+			p.articleContentExcludeSelector,
     	JSON_ARRAYAGG(
         JSON_OBJECT(
 					'id', c.id,
@@ -39,11 +41,13 @@ export async function load({ locals }) {
 		GROUP BY
 			p.id,
 			p.name,
-			p.titleSelector,
-			p.urlSelector,
-			p.descriptionSelector,
-			p.dateSelector,
-			p.imgSelector;
+			p.previewTitleSelector,
+			p.previewUrlSelector,
+			p.previewDescriptionSelector,
+			p.previewDateSelector,
+			p.previewImgSelector,
+			p.articleContentContainerSelector,
+			p.articleContentExcludeSelector
 	`,
 		[user.id]
 	);
@@ -51,11 +55,13 @@ export async function load({ locals }) {
 		SELECT
 			p.id,
 			p.name,
-			p.titleSelector,
-			p.urlSelector,
-			p.descriptionSelector,
-			p.dateSelector,
-			p.imgSelector,
+			p.previewTitleSelector,
+			p.previewUrlSelector,
+			p.previewDescriptionSelector,
+			p.previewDateSelector,
+			p.previewImgSelector,
+			p.articleContentContainerSelector,
+			p.articleContentExcludeSelector,
 			JSON_ARRAYAGG(
         JSON_OBJECT(
 					'id', c.id,
@@ -69,7 +75,7 @@ export async function load({ locals }) {
 		JOIN
 			categories c ON c.providerId = p.id
 		GROUP BY
-			p.id;
+			p.id
 	`);
 	db.end();
 

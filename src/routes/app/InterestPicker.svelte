@@ -5,7 +5,8 @@
 	import { cn, accordion } from '$lib/utils';
 	import { Check } from '$lib/components/icons';
 	import { quintOut } from 'svelte/easing';
-	import { Button, Spinner } from '$lib/components';
+	import { Button, Spinner, HorizontalScroll } from '$lib/components';
+	import { spring } from 'svelte/motion';
 
 	const COLOR = CARDS_COLORS[2];
 	let {
@@ -20,22 +21,31 @@
 	let displayedCategories = $state(allCategories);
 	let languageFilterValue = $state('all');
 	let activeProviderIndex = $state(0);
+	let newCategoryIds = $state([]);
 	let error = $state(null);
-
 	let languages = $state([]);
+	let activeProviderIndicatorPos = spring({ x: 0, width: 0 }, { stiffness: 0.1, damping: 0.25 });
+
+	// Get all category ids
+	$effect(() => {
+		newCategoryIds = categories.map((p) => p.categories.map((c) => c.id)).flat();
+	});
+
+	// Get all languages
 	$effect(() => {
 		const langs = allCategories.map((p) => p.categories.map((c) => c.lang)).flat();
 		languages = [...new Set(langs)];
 	});
 
+	// Check if there are unsaved changes
 	$effect(() => {
-		const newCategoryIds = categories.map((p) => p.categories.map((c) => c.id)).flat();
 		const oldCategoryIds = initialCategories.map((p) => p.categories.map((c) => c.id)).flat();
 		hasUnsavedChanges =
 			newCategoryIds.some((id) => !oldCategoryIds.includes(id)) ||
 			oldCategoryIds.some((id) => !newCategoryIds.includes(id));
 	});
 
+	// Reset categories when the modal is closed
 	$effect(() => {
 		if (visible) {
 			showNavbar.set(false);
@@ -46,6 +56,7 @@
 		}
 	});
 
+	// Filter categories by language
 	$effect(() => {
 		if (languageFilterValue === 'all') {
 			displayedCategories = allCategories;
@@ -59,6 +70,23 @@
 		}
 	});
 
+	// Update the active provider indicator position
+	$effect(() => {
+		const activeProviderButton = document.querySelectorAll('#activeProviderContainer > button')[
+			activeProviderIndex
+		];
+		if (!activeProviderButton) return;
+		activeProviderIndicatorPos.set({
+			x: activeProviderButton.offsetLeft,
+			width: activeProviderButton.offsetWidth
+		});
+	});
+
+	/**
+	 * Asynchronously saves the selected categories.
+	 * This function is typically called when the user confirms their category selections.
+	 * It performs necessary operations to persist the selected categories.
+	 */
 	async function saveCategories() {
 		if (!hasUnsavedChanges) {
 			visible = false;
@@ -71,7 +99,7 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				categories: categories.map((p) => p.categories.map((c) => c.id)).flat()
+				categories: newCategoryIds
 			})
 		});
 		isSavingCategories = false;
@@ -117,44 +145,43 @@
 					{/each}
 				</select>
 			</div>
-			<div class="flex flex-row gap-4 items-center overflow-x-auto no-scrollbar px-4 shrink-0 mb-4">
+			<HorizontalScroll
+				class="gap-4 w-full px-4 shrink-0 mb-4 relative"
+				id="activeProviderContainer"
+			>
+				<span
+					class="h-full rounded-full absolute z-0 bg-white"
+					style="width: {$activeProviderIndicatorPos.width}px; left: {$activeProviderIndicatorPos.x}px;"
+				></span>
 				{#each displayedCategories as provider, i}
 					<button
-						class={cn(
-							'shrink-0 font-medium capitalize px-2 py-2 rounded-full text-text-heading',
-							activeProviderIndex === i && 'bg-white'
-						)}
+						class="shrink-0 font-medium capitalize z-10 px-2 py-2 rounded-full text-text-heading"
 						onclick={() => (activeProviderIndex = i)}
 					>
 						{provider.name}
 					</button>
 				{/each}
-			</div>
+			</HorizontalScroll>
 
 			<!-- Categories list -->
-			<div class="grow flex overflow-y-hidden w-full flex-col p-6 pt-0">
+			<div class="grow flex overflow-y-hidden w-full flex-col p-4 pt-0">
 				<div class="overflow-y-auto no-scrollbar grow rounded-3xl flex flex-col relative">
 					<div class="flex flex-col gap-4 grow">
 						{#each displayedCategories[activeProviderIndex].categories as category}
-							{@const isInUsersCategories = categories
-								.map((p) => p.categories.map((c) => c.id))
-								.flat()
-								.includes(category.id)}
+							{@const isInUsersCategories = newCategoryIds.includes(category.id)}
 							<div class="w-full relative flex flex-row ietms-center">
 								<img
 									src="/input-checkbox-combo-bg.svg"
 									alt="Background"
-									class="absolute top-0 h-16 left-0"
+									class="absolute top-0 h-full left-0"
 								/>
-								<div class="flex flex-row items-center grow gap-[63px] z-10">
+								<div class="flex flex-row items-center grow gap-[55px] md:gap-[63px] z-10">
 									<div class="p-2">
 										<button
 											aria-label="Toggle category"
 											class={cn(
-												'size-12 rounded-full flex flex-col items-center justify-center transition-all border',
-												isInUsersCategories
-													? 'bg-neutral-800 border-white'
-													: 'border-neutral-300/50 bg-white'
+												'size-10 md:size-12 rounded-full flex flex-col items-center justify-center transition-all',
+												isInUsersCategories ? 'bg-neutral-800' : 'bg-white'
 											)}
 											onclick={() => {
 												const newItem = allCategories[activeProviderIndex].categories.find(
@@ -192,11 +219,11 @@
 										</button>
 									</div>
 									<div
-										class="bg-white grow rounded-r-full flex flex-row items-center justify-between pr-4 h-full gap-4"
+										class="bg-white grow rounded-r-full flex flex-row items-center relative justify-between pr-14 h-full gap-4"
 									>
 										<p class="text-base font-medium grow">{category.label}</p>
 										<div
-											class="bg-neutral-800 text-white px-3 py-0.5 text-center text-xl font-bold rounded-full"
+											class="bg-neutral-800 text-white px-3 py-0.5 text-center text-lg font-semibold rounded-full absolute right-2 top-1/2 -translate-y-1/2"
 										>
 											{category.lang}
 										</div>
@@ -207,7 +234,7 @@
 					</div>
 				</div>
 				<div class="flex flex-col mt-4 gap-2">
-					<div class="" use:accordion={error || categories.length === 0}>
+					<div use:accordion={error || categories.length === 0}>
 						<div
 							class="px-6 py-2 rounded-3xl bg-red-600/50 text-text-heading-dark font-semibold text-base"
 						>

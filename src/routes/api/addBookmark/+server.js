@@ -4,9 +4,9 @@ import { createConnection } from '$lib/server/db';
 export async function POST({ request, locals }) {
 	const { url, title, date, img, color, description } = await request.json();
 
-	if (!url || !title || !date || !img | !color || color.length !== 6 || !description) {
+	if (!url || !title || !date || !img | !color || color.length !== 6 || !description)
 		return new Response(null, { status: 400 });
-	}
+
 	const { user } = locals;
 	const db = await createConnection();
 	const [newBookmark] = await db.query(

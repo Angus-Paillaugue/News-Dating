@@ -37,7 +37,7 @@
 			<p class="text-text-body">This action is <b>irreversible</b>!</p>
 			<div class="mt-2 grid w-full grid-cols-2 gap-2">
 				<Button center onclick={() => (deleteAccountModalOpen = false)}>No, Cancel</Button>
-				<Button center href="/app/delete-account" style="danger">Yes, Delete</Button>
+				<Button center href="/app/delete-account" variant="danger">Yes, Delete</Button>
 			</div>
 		</div>
 	</div>
@@ -51,7 +51,7 @@
 		<h1 class="text-text-heading text-2xl font-semibold">Welcome, {user.username}</h1>
 
 		<Button class="w-full" href="/app/log-out">Log-out</Button>
-		<Button class="w-full" style="danger" onclick={() => (deleteAccountModalOpen = true)}
+		<Button class="w-full" variant="danger" onclick={() => (deleteAccountModalOpen = true)}
 			>Delete account</Button
 		>
 	</section>

@@ -20,19 +20,25 @@
 		visible = $bindable(false),
 		color = $bindable(''),
 		bookmarks = $bindable([]),
-		onBookmarkChange
+		provider = $bindable(''),
+		onBookmarkChange,
+		date,
+		img,
+		title,
+		onclose
 	} = $props();
 	let article = $state({ title: '', paragraphs: [], date: '' });
 	let shared = $state(false);
 	let isBookmarking = $state(false);
-	let fsImageModalProps = $state({ visible: false, src: '' });
-	let isBookmarked = $state(
-		bookmarks.some((b) => encodeURIComponent(b.url) === encodeURIComponent(url))
-	);
+	let fsImgModalProps = $state({ visible: false, src: '' });
+	let isBookmarked = $state(false);
 
+	// Check if the article is bookmarked
 	$effect(() => {
 		isBookmarked = bookmarks.some((b) => encodeURIComponent(b.url) === encodeURIComponent(url));
 	});
+
+	// Toggle navbar visibility when the article is opened
 	$effect(() => {
 		if (visible) {
 			showNavbar.set(false);
@@ -40,6 +46,8 @@
 			showNavbar.set(true);
 		}
 	});
+
+	// Fetch article contents when the article is opened
 	$effect(async () => {
 		if (!url || !visible) return;
 		await fetchContents(url);
@@ -58,17 +66,23 @@
 
 		const parser = new DOMParser();
 		const xmlDoc = parser.parseFromString(xml.contents, 'text/html');
-		const contentContainer = xmlDoc.querySelector('.t-content__body');
-		const title = xmlDoc.querySelector('.t-content__title').textContent;
-		const date = xmlDoc
-			.querySelector('meta[property="article:published_time"]')
-			.getAttribute('content');
-		const image = xmlDoc.querySelector('.t-content__main-media > figure img').getAttribute('src');
-
+		const contentContainer = xmlDoc.querySelector(provider.articleContentContainerSelector);
 		if (contentContainer) {
-			const pageContents = contentContainer.querySelectorAll(
-				'p:not(.o-self-promo p), h1, h2, h3, h4, h5, h6, img'
-			);
+			const excludeSelectors = provider.articleContentExcludeSelector.split('||');
+			const selectors = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img'];
+			const selector = provider.articleContentExcludeSelector
+				? selectors
+						.map((element) => {
+							// Create :not() selectors for each exclusion
+							const exclusions = excludeSelectors
+								.map((modifier) => `:not(${modifier} ${element})`)
+								.join('');
+							return `${element}${exclusions}`;
+						})
+						.join(', ')
+				: selectors.join(', ');
+
+			const pageContents = contentContainer.querySelectorAll(selector);
 			article.paragraphs = Array.from(pageContents)
 				.map((p) => {
 					if (p.tagName === 'IMG')
@@ -76,10 +90,12 @@
 					return { tag: p.tagName.toLowerCase(), content: p.textContent.trim() };
 				})
 				.filter((e) => e);
+		} else {
+			article.paragraphs = [{ tag: 'p', content: 'No content found' }];
 		}
 		article.title = title;
 		article.date = new Date(date);
-		article.image = image;
+		article.img = img;
 		loading = false;
 	}
 
@@ -106,7 +122,7 @@
 				url,
 				title: article.title,
 				date: article.date,
-				img: article.image,
+				img: article.img,
 				color: color,
 				description: article?.paragraphs?.map((p) => p.content)?.join('\n') || 'No description'
 			};
@@ -131,7 +147,7 @@
 <svelte:window
 	onkeydown={(e) => {
 		if (e.key === 'Escape') {
-			fsImageModalProps.visible = false;
+			fsImgModalProps.visible = false;
 		}
 	}}
 />
@@ -163,7 +179,10 @@
 				<div class="p-4 md:p-6 flex w-full flex-row justify-between items-start">
 					<!-- Close full-screen article -->
 					<button
-						onclick={() => (visible = false)}
+						onclick={() => {
+							visible = false;
+							onclose();
+						}}
 						class="rounded-full p-2 text-text-body"
 						aria-label="Close"
 						style="background-color: #{color}; filter: brightness(93%);"
@@ -234,10 +253,10 @@
 						</button>
 					</div>
 				</div>
-				<div class="grow flex overflow-y-hidden flex-col p-6 pt-0">
+				<div class="grow w-full flex overflow-y-hidden flex-col p-6 pt-0">
 					<div class="overflow-y-auto no-scrollbar grow rounded-3xl pb-20 md:pb-4">
-						<!-- Main image -->
-						<img src={article.image} class="w-full rounded-3xl" alt="" />
+						<!-- Main img -->
+						<img src={article.img} class="w-full rounded-3xl" alt="" />
 						<h1 class="leading-10 text-2xl md:text-3xl font-semibold text-text-heading my-4">
 							{article.title}
 						</h1>
@@ -286,10 +305,10 @@
 								</h6>
 							{:else if p.tag === 'img'}
 								<button
-									aria-label="Open image fullscreen"
+									aria-label="Open img fullscreen"
 									onclick={() => {
-										fsImageModalProps.src = p.content;
-										fsImageModalProps.visible = true;
+										fsImgModalProps.src = p.content;
+										fsImgModalProps.visible = true;
 									}}
 								>
 									<img src={p.content} class="w-max rounded-xl max-h-[500px]" alt="" />
@@ -312,13 +331,13 @@
 	</div>
 {/if}
 
-{#if fsImageModalProps.visible}
+{#if fsImgModalProps.visible}
 	<button
 		style="z-index: 10001;"
 		class="fixed inset-0"
-		aria-label="Close full screen image"
+		aria-label="Close full screen img"
 		onclick={() => {
-			fsImageModalProps.visible = false;
+			fsImgModalProps.visible = false;
 		}}
 	>
 		<div class="w-full h-full relative">
@@ -331,7 +350,7 @@
 				transition:scale={{ duration: 500 }}
 			>
 				<img
-					src={fsImageModalProps.src}
+					src={fsImgModalProps.src}
 					alt=""
 					class="max-w-full max-h-full object-contain rounded-3xl"
 				/>
