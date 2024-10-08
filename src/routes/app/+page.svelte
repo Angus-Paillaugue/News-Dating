@@ -10,20 +10,21 @@
 
 	const { data } = $props();
 	const { allCategories } = data;
-	const MAX_Z_INDEX = 9999;
 	const CARD_ROTATION_FACTOR = 6;
 
 	let items = $state([]);
 	let bookmarks = $state(data.bookmarks || []);
 	let categories = $state(data.categories || []);
-	let fsArticleProps = $state({ visible: false, url: '', color: '' });
+	let fsArticleProps = $state({ open: false, url: '', color: '' });
 	let activeCategoryIndex = $state(0);
 	let activeProviderIndex = $state(0);
-	let activeCardIndex = $state(null);
 	let isLoading = $state(false);
-	let interestPickerVisible = $state(false);
+	let interestPickerOpen = $state(false);
 	let error = $state(null);
-	let swapCategoryModalVisible = $state(false);
+	let swapCategoryModalOpen = $state(false);
+
+	let currentCard = $state(null);
+	let nextCard = $state(null);
 
 	/**
 	 * Asynchronously fetches data from a specified source.
@@ -88,7 +89,13 @@
 		}
 
 		isLoading = false;
-		activeCardIndex = 0;
+		if (items.length > 0) {
+			currentCard = items[0];
+			nextCard = items[1] || null;
+		} else {
+			currentCard = null;
+			nextCard = null;
+		}
 	}
 
 	// Fetch news on mount
@@ -119,10 +126,9 @@
 	 * @param {Event} event - The touch start event object.
 	 */
 	function handleTouchStart(event) {
-		const index = activeCardIndex;
 		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
-		items[index].startX = touch.clientX;
-		items[index].currentX = touch.clientX;
+		currentCard.startX = touch.clientX;
+		currentCard.currentX = touch.clientX;
 	}
 
 	/**
@@ -131,14 +137,14 @@
 	 * @param {TouchEvent} event - The touch move event object.
 	 */
 	function handleTouchMove(event) {
-		const index = activeCardIndex;
-		if (!items[index]?.startX) return;
+		if (!currentCard?.startX) return;
 
 		const touch = (event?.touches && event?.touches[0]) ?? { clientX: event.clientX };
-		items[index].currentX = touch.clientX;
-		const diffX = items[index].currentX - items[index].startX;
+		currentCard.currentX = touch.clientX;
+		const diffX = currentCard.currentX - currentCard.startX;
 		const rotation = diffX / CARD_ROTATION_FACTOR;
-		items[index].transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+		currentCard.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+		currentCard.opacity = 1 - Math.abs(diffX) / window.innerWidth / 4;
 	}
 
 	/**
@@ -147,29 +153,43 @@
 	 * @param {Event} event - The touch end event object.
 	 */
 	function handleTouchEnd(event) {
-		const index = activeCardIndex;
-		if (!items[index]?.startX) return;
+		if (!currentCard?.startX) return;
+		const cardWidth = event.target.closest('.articleSwipeCard').clientWidth;
 
-		const diffX = items[index].currentX - items[index].startX;
-		if (Math.abs(diffX) > event.target.clientWidth / 4) {
+		const diffX = currentCard.currentX - currentCard.startX;
+		if (Math.abs(diffX) > cardWidth / 4) {
 			// If swipe right
 			if (diffX > 0) {
-				fsArticleProps.url = items[activeCardIndex].url;
-				fsArticleProps.visible = true;
-				fsArticleProps.color = items[activeCardIndex].color;
-			} else {
-				activeCardIndex++;
+				fsArticleProps.url = currentCard.url;
+				fsArticleProps.open = true;
+				fsArticleProps.color = currentCard.color;
 			}
-			const duration = window.innerWidth / 2 + 225;
-			const endValue = diffX > 0 ? duration : -duration;
+			const endCardPos = window.innerWidth / 2 + cardWidth;
+			const endValue = diffX > 0 ? endCardPos : -endCardPos;
 			const rotation = endValue / CARD_ROTATION_FACTOR;
-			items[index].transitionDuration = duration;
-			items[index].transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
-			items[index].opacity = 0;
+			const duration = endCardPos;
+			currentCard.transitionDuration = duration;
+			currentCard.transform = `translateX(${endValue}px) rotate(${rotation}deg)`;
+			currentCard.opacity = 0;
+			setTimeout(() => {
+				if (items.length > 0) {
+					items = items.slice(1);
+					currentCard = items[0];
+					nextCard = items[1] || null;
+				} else {
+					currentCard = null;
+					nextCard = null;
+				}
+			}, duration);
 		} else {
-			items[index].transform = 'translateX(0) rotate(0)';
+			const _INITIAL_TRANSITION_DURATION = currentCard.transitionDuration;
+			currentCard.transitionDuration = 300;
+			currentCard.transform = 'translateX(0) rotate(0)';
+			setTimeout(() => {
+				currentCard.transitionDuration = _INITIAL_TRANSITION_DURATION;
+			}, currentCard.transitionDuration);
 		}
-		items[index].startX = null;
+		currentCard.startX = null;
 	}
 </script>
 
@@ -179,8 +199,9 @@
 
 <svelte:window onmousemove={handleTouchMove} />
 
+<!-- Modal to "subscribe" to a category/provider -->
 <InterestPicker
-	bind:visible={interestPickerVisible}
+	bind:open={interestPickerOpen}
 	bind:categories
 	{allCategories}
 	onchange={() => {
@@ -189,32 +210,33 @@
 	}}
 />
 
+<!-- Change the actively displayed category cards -->
 <ChangeCategory
-	bind:visible={swapCategoryModalVisible}
+	bind:open={swapCategoryModalOpen}
 	bind:categories
 	bind:activeCategoryIndex
 	bind:activeProviderIndex
 />
 
+<!-- Full article modal -->
 <Article
 	url={fsArticleProps.url}
 	bind:bookmarks
 	bind:color={fsArticleProps.color}
-	bind:visible={fsArticleProps.visible}
+	bind:open={fsArticleProps.open}
 	bind:provider={allCategories[activeProviderIndex]}
-	title={items[activeCardIndex]?.title}
-	date={items[activeCardIndex]?.date}
-	img={items[activeCardIndex]?.img}
-	onclose={() => {
-		activeCardIndex++;
-	}}
+	title={currentCard?.title}
+	date={currentCard?.date}
+	img={currentCard?.img}
 />
 
 <div class="h-full grow flex flex-col pb-[5.5rem] overflow-hidden">
 	<!-- Heading -->
-	<header class="shrink-0 p-4 max-w-md mx-auto w-full">
+	<header class="shrink-0 p-4 max-w-md mx-auto w-full pb-0">
 		<div class="flex flex-row justify-between items-center">
-			<h1 class="text-xl font-extrabold">News</h1>
+			<!-- App title -->
+			<h1 class="text-xl font-extrabold">News Dating</h1>
+
 			<!-- Open categories modal button -->
 			<Dropdown align="end">
 				<Dropdown.Trigger class="rounded-full border border-neutral-500/50 p-1.5">
@@ -223,16 +245,19 @@
 				{#snippet items()}
 					<Dropdown.Item
 						onclick={() => {
-							interestPickerVisible = true;
+							interestPickerOpen = true;
 						}}>Categories</Dropdown.Item
 					>
 					<Dropdown.Item href="/app/dashboard">Account</Dropdown.Item>
 				{/snippet}
 			</Dropdown>
 		</div>
+	</header>
 
+	<!-- Active category selector -->
+	<div class="max-w-md mx-auto w-full p-4 pt-0">
+		<!-- Vertical separator -->
 		<hr class="my-4 border-neutral-800" />
-
 		<div class="flex flex-row items-center gap-4">
 			<h2 class="w-fit capitalize">
 				<b>{categories[activeProviderIndex].name}</b> / {categories[activeProviderIndex].categories[
@@ -240,18 +265,19 @@
 				].label}
 			</h2>
 
-			<Button variant="ghost" class="size-8 p-0" onclick={() => (swapCategoryModalVisible = true)}>
+			<!-- Open active category selector modal -->
+			<Button variant="ghost" class="size-8 p-0" onclick={() => (swapCategoryModalOpen = true)}>
 				<Swap class="size-6 text-text-heading-dark" />
 			</Button>
 		</div>
-	</header>
+	</div>
 
 	<!-- Main content -->
 	<div class="flex grow flex-col items-center justify-center relative">
 		{#if isLoading}
 			<!-- If is fetching news and parsing them -->
 			<Spinner class="size-8" />
-		{:else if activeCardIndex === items.length - 1}
+		{:else if items.length === 0}
 			<!-- If there are no more news card to display -->
 			<div
 				class="px-6 max-w-md mx-auto py-4 rounded-3xl flex flex-col gap-4 text-text-heading items-center"
@@ -266,15 +292,23 @@
 					Change category
 				</Button>
 			</div>
-		{:else if items.length > 0}
-			<!-- Display news cards -->
-			{#each items as article, i}
+		{:else if currentCard}
+			{#key currentCard.url}
+				<!-- Display next card (for removing transition stutter) -->
+				{#if nextCard}
+					<div
+						class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] transition-all"
+					>
+						<Card article={nextCard} />
+					</div>
+				{/if}
+				<!-- Display current card -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] transition-all"
-					style="z-index: {MAX_Z_INDEX - i - 1}; transform: {article.transform ||
-						'translateX(0) rotate(0)'}; transition-duration: {article.transitionDuration ??
-						'75'}ms; opacity: {article.opacity ?? 1};"
+					class="absolute top-0 left-4 right-4 bottom-4 mx-auto rounded-3xl overflow-hidden max-w-md max-h-[700px] transition-all articleSwipeCard"
+					style="transform: {currentCard.transform ||
+						'translateX(0) rotate(0)'}; transition-duration: {currentCard.transitionDuration ??
+						'75'}ms; opacity: {currentCard.opacity ?? '1'};"
 					ontouchstart={handleTouchStart}
 					ontouchmove={handleTouchMove}
 					ontouchend={handleTouchEnd}
@@ -282,9 +316,9 @@
 					onmouseup={handleTouchEnd}
 					onmouseleave={handleTouchEnd}
 				>
-					<Card {article} />
+					<Card article={currentCard} />
 				</div>
-			{/each}
+			{/key}
 		{:else if error}
 			<!-- If any error was thrown during the fetching process -->
 			<div

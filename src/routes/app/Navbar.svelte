@@ -21,7 +21,7 @@
 
 {#if $showNavbar}
 	<div
-		class="fixed bottom-2 sm:bottom-5 left-1/2 -translate-x-1/2 z-[10001]"
+		class="fixed bottom-2 sm:bottom-5 left-1/2 -translate-x-1/2 z-30"
 		transition:fly={{ y: '92px', duration: 600, opacity: 1, easing: backInOut }}
 	>
 		<div class="flex flex-row gap-2 p-2 relative">

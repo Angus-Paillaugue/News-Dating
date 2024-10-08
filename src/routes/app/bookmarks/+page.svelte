@@ -7,8 +7,7 @@
 	const { data } = $props();
 	let bookmarks = $state(data.bookmarks || []);
 	let searchInputValue = $state('');
-
-	let fsArticleProps = $state({ visible: false, url: '', color: '' });
+	let fsArticleProps = $state({ open: false, url: '', color: '' });
 	let bookmarksMatchingSearch = $state([]);
 
 	const fuseOptionsList = {
@@ -23,10 +22,12 @@
 		fuseOptionsList
 	);
 
+	// Update bookmarks on bookmarks change
 	$effect(() => {
 		fuseList.setCollection(bookmarks);
 	});
 
+	// Search thru bookmarks
 	$effect(() => {
 		if (searchInputValue === '') {
 			bookmarksMatchingSearch = bookmarks;
@@ -41,13 +42,14 @@
 	<title>Bookmarks</title>
 </svelte:head>
 
+<!-- Full article modal -->
 <Article
 	url={fsArticleProps.url}
 	bind:bookmarks
 	bind:color={fsArticleProps.color}
-	bind:visible={fsArticleProps.visible}
+	bind:open={fsArticleProps.open}
 	onBookmarkChange={() => {
-		fsArticleProps.visible = false;
+		fsArticleProps.open = false;
 	}}
 />
 
@@ -77,7 +79,7 @@
 			<button
 				onclick={() => {
 					fsArticleProps.url = article.url;
-					fsArticleProps.visible = true;
+					fsArticleProps.open = true;
 					fsArticleProps.color = article.color;
 				}}
 				class="rounded-3xl text-start"

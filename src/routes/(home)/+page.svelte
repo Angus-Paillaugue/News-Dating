@@ -87,6 +87,7 @@
 				<Button class="w-fit px-8" href="/log-in">Get started</Button>
 			</div>
 			<div class="w-full h-full flex flex-col items-center justify-center relative">
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="transition-transform h-fit w-full z-50 flex flex-col items-center justify-center"
 					bind:this={heroCard}

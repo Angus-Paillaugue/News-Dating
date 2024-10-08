@@ -98,7 +98,7 @@
 
 	<div
 		class={cn(
-			'absolute z-[9999] w-52 overflow-hidden rounded bg-neutral-900',
+			'absolute z-10 w-52 overflow-hidden rounded bg-neutral-900',
 			positionClasses[position].pos,
 			positionClasses[position].align[align]
 		)}

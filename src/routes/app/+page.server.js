@@ -4,10 +4,12 @@ import { createConnection } from '$lib/server/db';
 export async function load({ locals }) {
 	const { user } = locals;
 	const db = await createConnection();
+
 	const [bookmarks] = await db.query(
 		'SELECT * FROM bookmarks WHERE userId = ? ORDER BY date DESC',
 		[user.id]
 	);
+
 	const [categories] = await db.query(
 		`
 		SELECT
@@ -51,6 +53,7 @@ export async function load({ locals }) {
 	`,
 		[user.id]
 	);
+
 	const [allCategories] = await db.query(`
 		SELECT
 			p.id,
@@ -77,6 +80,7 @@ export async function load({ locals }) {
 		GROUP BY
 			p.id
 	`);
+
 	db.end();
 
 	return { bookmarks, categories, allCategories };
