@@ -3,55 +3,55 @@
 @tailwind utilities;
 
 @layer utilities {
-	/* Hide scrollbar for Chrome, Safari and Opera */
-	.no-scrollbar::-webkit-scrollbar {
-		display: none;
-	}
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-	/* Hide scrollbar for IE, Edge and Firefox */
-	.no-scrollbar {
-		-ms-overflow-style: none;
-		/* IE and Edge */
-		scrollbar-width: none;
-		/* Firefox */
-	}
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
 
 :root {
-	--text-body: theme(colors.text-body.DEFAULT);
-	--text-body-dark: theme(colors.text-body.dark);
-	--text-heading: theme(colors.text-heading.DEFAULT);
-	--text-heading-dark: theme(colors.text-heading.dark);
-	--body-color: theme(colors.body.DEFAULT);
-	--body-color-dark: theme(colors.body.dark);
+  --text-body: theme(colors.text-body.DEFAULT);
+  --text-body-dark: theme(colors.text-body.dark);
+  --text-heading: theme(colors.text-heading.DEFAULT);
+  --text-heading-dark: theme(colors.text-heading.dark);
+  --body-color: theme(colors.body.DEFAULT);
+  --body-color-dark: theme(colors.body.dark);
 }
 
 * {
-	@apply scroll-smooth outline-none focus:outline-none;
+  @apply scroll-smooth outline-none focus:outline-none;
 }
 
 html {
-	@apply scroll-pt-20 font-sans md:scroll-pt-28;
+  @apply scroll-pt-20 font-sans md:scroll-pt-28;
 }
 
 body {
-	@apply font-body bg-body-dark text-text-body-dark font-normal;
+  @apply bg-body-dark font-body font-normal text-text-body-dark;
 }
 
 ::-webkit-scrollbar {
-	@apply h-2 w-2;
+  @apply h-2 w-2;
 }
 
 ::-webkit-scrollbar-track {
-	@apply bg-inherit;
+  @apply bg-inherit;
 }
 
 ::-webkit-scrollbar-thumb {
-	@apply rounded-full bg-neutral-700;
+  @apply rounded-full bg-neutral-700;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	@apply bg-neutral-600;
+  @apply bg-neutral-600;
 }
 
 /* Text */
@@ -61,16 +61,16 @@ h3,
 h4,
 h5,
 h6 {
-	@apply font-heading text-text-heading-dark;
+  @apply font-heading text-text-heading-dark;
 }
 
 p {
-	@apply text-neutral-700 leading-6 font-body;
+  @apply font-body leading-6 text-neutral-700;
 }
 time {
-	@apply text-sm text-neutral-500 font-body;
+  @apply font-body text-sm text-neutral-500;
 }
 
 .bionic-reading {
-	@apply transition-[font-weight] duration-500 font-[var(--br-weight)];
+  @apply font-[var(--br-weight)] transition-[font-weight] duration-500;
 }

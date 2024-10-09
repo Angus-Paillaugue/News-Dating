@@ -7,7 +7,6 @@ const port = 8091;
 const app = express();
 const server = createServer(app);
 
-
 // SvelteKit should handle everything else using Express middleware
 // https://github.com/sveltejs/kit/tree/master/packages/adapter-node#custom-server
 app.use(handler);

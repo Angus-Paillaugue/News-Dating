@@ -1,93 +1,95 @@
 <script>
-	import { Card, Article } from '$lib/components';
-	import { CARDS_COLORS } from '$lib/constants';
-	import { CircleSlash } from '$lib/components/icons';
-	import Fuse from 'fuse.js';
+  import { Card, Article } from '$lib/components';
+  import { CARDS_COLORS } from '$lib/constants';
+  import { CircleSlash } from '$lib/components/icons';
+  import Fuse from 'fuse.js';
 
-	const { data } = $props();
-	let bookmarks = $state(data.bookmarks || []);
-	let searchInputValue = $state('');
-	let fsArticleProps = $state({ open: false, url: '', color: '' });
-	let bookmarksMatchingSearch = $state([]);
+  const { data } = $props();
+  let bookmarks = $state(data.bookmarks || []);
+  let searchInputValue = $state('');
+  let fsArticleProps = $state({ open: false, url: '', color: '' });
+  let bookmarksMatchingSearch = $state([]);
 
-	const fuseOptionsList = {
-		threshold: 0.4,
-		ignoreLocation: true,
-		keys: ['title', 'description']
-	};
+  const fuseOptionsList = {
+    threshold: 0.4,
+    ignoreLocation: true,
+    keys: ['title', 'description']
+  };
 
-	const fuseList = new Fuse(
-		// svelte-ignore state_referenced_locally
-		bookmarks,
-		fuseOptionsList
-	);
+  const fuseList = new Fuse(
+    // svelte-ignore state_referenced_locally
+    bookmarks,
+    fuseOptionsList
+  );
 
-	// Update bookmarks on bookmarks change
-	$effect(() => {
-		fuseList.setCollection(bookmarks);
-	});
+  // Update bookmarks on bookmarks change
+  $effect(() => {
+    fuseList.setCollection(bookmarks);
+  });
 
-	// Search thru bookmarks
-	$effect(() => {
-		if (searchInputValue === '') {
-			bookmarksMatchingSearch = bookmarks;
-			return;
-		}
+  // Search thru bookmarks
+  $effect(() => {
+    if (searchInputValue === '') {
+      bookmarksMatchingSearch = bookmarks;
+      return;
+    }
 
-		bookmarksMatchingSearch = fuseList.search(searchInputValue).map((result) => result.item);
-	});
+    bookmarksMatchingSearch = fuseList
+      .search(searchInputValue)
+      .map((result) => result.item);
+  });
 </script>
 
 <svelte:head>
-	<title>Bookmarks</title>
+  <title>Bookmarks</title>
 </svelte:head>
 
 <!-- Full article modal -->
 <Article
-	url={fsArticleProps.url}
-	bind:bookmarks
-	bind:color={fsArticleProps.color}
-	bind:open={fsArticleProps.open}
-	onBookmarkChange={() => {
-		fsArticleProps.open = false;
-	}}
+  url={fsArticleProps.url}
+  bind:bookmarks
+  bind:color={fsArticleProps.color}
+  bind:open={fsArticleProps.open}
+  onBookmarkChange={() => {
+    fsArticleProps.open = false;
+  }}
 />
 
-<div class="h-screen relative overflow-hidden flex flex-col">
-	<div class="max-w-md mx-auto w-full p-4">
-		<h1 class="mb-4 text-3xl font-bold">Your bookmarks</h1>
-		<input
-			type="text"
-			class="px-4 py-2 text-lg font-medium rounded-full bg-neutral-800 w-full text-text-heading-dark placeholder:text-text-body focus:outline-0 outline-0"
-			placeholder="Search news"
-			bind:value={searchInputValue}
-		/>
-	</div>
-	<div
-		class="flex grow flex-col gap-8 items-center p-5 justify-start no-scrollbar overflow-y-auto pb-28"
-	>
-		{#if bookmarks.length === 0}
-			<div
-				class="px-6 py-4 rounded-3xl flex flex-row gap-4 text-text-heading items-center"
-				style="background-color: #{CARDS_COLORS[0]};"
-			>
-				<CircleSlash class="size-6" />
-				<h1 class="text-2xl font-bold text-inherit">No bookmarks yet</h1>
-			</div>
-		{/if}
-		{#each bookmarksMatchingSearch as article, i}
-			<button
-				onclick={() => {
-					fsArticleProps.url = article.url;
-					fsArticleProps.open = true;
-					fsArticleProps.color = article.color;
-				}}
-				class="rounded-3xl text-start"
-				style="transform-origin: 50% 100%; transform: rotate({(i % 2 > 0 && '-') +
-					Math.round(Math.random() * 2 + 1)}deg);"
-			>
-				<Card {article} />
-			</button>
-		{/each}
-	</div>
+<div class="relative flex h-screen flex-col overflow-hidden">
+  <div class="mx-auto w-full max-w-md p-4">
+    <h1 class="mb-4 text-3xl font-bold">Your bookmarks</h1>
+    <input
+      type="text"
+      class="w-full rounded-full bg-neutral-800 px-4 py-2 text-lg font-medium text-text-heading-dark outline-0 placeholder:text-text-body focus:outline-0"
+      placeholder="Search news"
+      bind:value={searchInputValue}
+    />
+  </div>
+  <div
+    class="no-scrollbar flex grow flex-col items-center justify-start gap-8 overflow-y-auto p-5 pb-28"
+  >
+    {#if bookmarks.length === 0}
+      <div
+        class="flex flex-row items-center gap-4 rounded-3xl px-6 py-4 text-text-heading"
+        style="background-color: #{CARDS_COLORS[0]};"
+      >
+        <CircleSlash class="size-6" />
+        <h1 class="text-2xl font-bold text-inherit">No bookmarks yet</h1>
+      </div>
+    {/if}
+    {#each bookmarksMatchingSearch as article, i}
+      <button
+        onclick={() => {
+          fsArticleProps.url = article.url;
+          fsArticleProps.open = true;
+          fsArticleProps.color = article.color;
+        }}
+        class="rounded-3xl text-start"
+        style="transform-origin: 50% 100%; transform: rotate({(i % 2 > 0 &&
+          '-') + Math.round(Math.random() * 2 + 1)}deg);"
+      >
+        <Card {article} />
+      </button>
+    {/each}
+  </div>
 </div>

@@ -1,21 +1,21 @@
 <script>
-	import { bionicReadingEnabled } from '$lib/stores';
-	import { browser } from '$app/environment';
-	import Navbar from './Navbar.svelte';
+  import { bionicReadingEnabled } from '$lib/stores';
+  import { browser } from '$app/environment';
+  import Navbar from './Navbar.svelte';
 
-	const { children } = $props();
+  const { children } = $props();
 
-	// Set the font weight based on the bionic reading setting
-	bionicReadingEnabled.subscribe((value) => {
-		if (!browser) return;
-		document.body.style.setProperty('--br-weight', value ? '700' : 'inherit');
-	});
+  // Set the font weight based on the bionic reading setting
+  bionicReadingEnabled.subscribe((value) => {
+    if (!browser) return;
+    document.body.style.setProperty('--br-weight', value ? '700' : 'inherit');
+  });
 </script>
 
-<div class="min-h-screen flex flex-col">
-	<div class="grow flex flex-col">
-		{@render children()}
-	</div>
+<div class="flex min-h-screen flex-col">
+  <div class="flex grow flex-col">
+    {@render children()}
+  </div>
 
-	<Navbar />
+  <Navbar />
 </div>

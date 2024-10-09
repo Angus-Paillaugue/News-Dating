@@ -2,16 +2,16 @@ import { createConnection } from '$lib/server/db';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals }) {
-	const { user } = locals;
-	const db = await createConnection();
+  const { user } = locals;
+  const db = await createConnection();
 
-	const [bookmarks] = await db.query(
-		'SELECT * FROM bookmarks WHERE userId = ? ORDER BY date DESC',
-		[user.id]
-	);
+  const [bookmarks] = await db.query(
+    'SELECT * FROM bookmarks WHERE userId = ? ORDER BY date DESC',
+    [user.id]
+  );
 
-	const [categories] = await db.query(
-		`
+  const [categories] = await db.query(
+    `
 		SELECT
     	p.id,
 			p.name,
@@ -51,10 +51,10 @@ export async function load({ locals }) {
 			p.articleContentContainerSelector,
 			p.articleContentExcludeSelector
 	`,
-		[user.id]
-	);
+    [user.id]
+  );
 
-	const [allCategories] = await db.query(`
+  const [allCategories] = await db.query(`
 		SELECT
 			p.id,
 			p.name,
@@ -81,7 +81,7 @@ export async function load({ locals }) {
 			p.id
 	`);
 
-	db.end();
+  db.end();
 
-	return { bookmarks, categories, allCategories };
+  return { bookmarks, categories, allCategories };
 }
