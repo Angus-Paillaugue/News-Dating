@@ -9,9 +9,15 @@
     activeCategoryIndex = $bindable(),
     categories = $bindable([])
   } = $props();
-  let newActiveProviderIndex = $state(null);
-  let newActiveCategoryIndex = $state(null);
+  let newActiveProviderIndex = $state(activeProviderIndex);
+  let newActiveCategoryIndex = $state(activeCategoryIndex);
   let step = $state(0);
+
+  // Reset internal indexes if changed from the outside
+  $effect(() => {
+    newActiveProviderIndex = activeProviderIndex;
+    newActiveCategoryIndex = activeCategoryIndex;
+  });
 </script>
 
 <!-- When escape key is pressed and is a the second step, get back to the first step -->
@@ -25,6 +31,7 @@
 />
 
 <Modal bind:open color={CARDS_COLORS[2]} dismissible={step === 0}>
+  <!-- Title -->
   <div
     class="mb-4 flex w-full flex-row items-center justify-start gap-8 p-4 md:mb-2 md:p-6"
   >

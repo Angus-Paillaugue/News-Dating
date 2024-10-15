@@ -22,7 +22,6 @@
   let interestPickerOpen = $state(false);
   let error = $state(null);
   let swapCategoryModalOpen = $state(false);
-
   let currentCard = $state(null);
   let nextCard = $state(null);
 
@@ -40,8 +39,26 @@
     localStorage.setItem('activeCategoryIndex', activeCategoryIndex);
     localStorage.setItem('activeProviderIndex', activeProviderIndex);
 
-    const provider = allCategories[activeProviderIndex];
+    const provider = categories[activeProviderIndex];
+    if(!provider) {
+      if(categories.length === 0) {
+        error = "Please subscribe to at least one category to read it's content!";
+        return;
+      } else {
+        activeProviderIndex = 0;
+        return;
+      }
+    }
     const category = provider.categories[activeCategoryIndex];
+    if(!category) {
+      if(provider.categories.length === 0 ) {
+        activeProviderIndex = 0
+        return;
+      }else {
+        activeCategoryIndex = 0;
+        return
+      }
+    }
 
     try {
       const response = await fetch(
@@ -54,6 +71,7 @@
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
       const itemsElement = xmlDoc.getElementsByTagName('item');
+
 
       Array.from(itemsElement).forEach((item, index) => {
         try {
@@ -216,9 +234,16 @@
   bind:open={interestPickerOpen}
   bind:categories
   {allCategories}
-  onchange={() => {
-    activeCategoryIndex = 0;
-    fetchData();
+  onchange={(categoriesBefore, categoriesAfter) => {
+    // If the active category was removed or changed index
+    if(categoriesBefore[activeProviderIndex]?.id !== categoriesAfter[activeProviderIndex]?.id) {
+      const newIndex = categoriesAfter[activeProviderIndex].findIndex((c) => c.id === categoriesBefore[activeProviderIndex].id);
+
+      // If the category was removed, set the active category to the first one available
+      // Otherwise, set the active category to the new index
+      activeCategoryIndex = newIndex === -1 ? 0 : newIndex;
+      fetchData();
+    }
   }}
 />
 
@@ -276,7 +301,7 @@
       <h2 class="w-fit capitalize">
         <b>{categories[activeProviderIndex].name}</b> / {categories[
           activeProviderIndex
-        ].categories[activeCategoryIndex].label}
+        ].categories[activeCategoryIndex]?.label}
       </h2>
 
       <!-- Open active category selector modal -->

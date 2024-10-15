@@ -23,25 +23,22 @@
             >
               <div class="relative h-80 shrink-0">
                 <div
-                  class="h-80 bg-[url(/screenshots/profile.png)] bg-[size:1000px_560px] bg-[left_-109px_top_-112px] bg-no-repeat"
-                ></div>
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-neutral-800 group-data-[dark]:from-[-25%]"
+                  class="absolute inset-0 bg-gradient-to-t from-white to-50%"
                 ></div>
               </div>
               <div class="relative p-10">
                 <h3
-                  class="font-mono text-xs/5 font-semibold uppercase tracking-widest text-neutral-500 data-[dark]:text-neutral-400"
+                  class="font-mono text-xs/5 font-semibold uppercase tracking-widest text-neutral-500"
                 >
                   Category
                 </h3>
                 <p
-                  class="mt-1 text-2xl/8 font-medium tracking-tight text-neutral-950 group-data-[dark]:text-white"
+                  class="mt-1 text-2xl/8 font-medium tracking-tight text-neutral-950"
                 >
                   Title
                 </p>
                 <p
-                  class="mt-2 max-w-[600px] text-sm/6 text-neutral-600 group-data-[dark]:text-neutral-400"
+                  class="mt-2 max-w-[600px] text-sm/6 text-neutral-600"
                 >
                   Lorem ipsum dolor sit amet consectetur adipisicing elit.
                   Veritatis accusamus adipisci repudiandae fuga eius, laboriosam
@@ -54,25 +51,22 @@
             >
               <div class="relative h-80 shrink-0">
                 <div
-                  class="absolute inset-0 bg-[url(/screenshots/competitors.png)] bg-[size:1100px_650px] bg-[left_-38px_top_-73px] bg-no-repeat"
-                ></div>
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-neutral-800 group-data-[dark]:from-[-25%]"
+                  class="absolute inset-0 bg-gradient-to-t from-white to-50%"
                 ></div>
               </div>
               <div class="relative p-10">
                 <h3
-                  class="font-mono text-xs/5 font-semibold uppercase tracking-widest text-neutral-500 data-[dark]:text-neutral-400"
+                  class="font-mono text-xs/5 font-semibold uppercase tracking-widest text-neutral-500"
                 >
                   Category
                 </h3>
                 <p
-                  class="mt-1 text-2xl/8 font-medium tracking-tight text-neutral-950 group-data-[dark]:text-white"
+                  class="mt-1 text-2xl/8 font-medium tracking-tight text-neutral-950"
                 >
                   Title
                 </p>
                 <p
-                  class="mt-2 max-w-[600px] text-sm/6 text-neutral-600 group-data-[dark]:text-neutral-400"
+                  class="mt-2 max-w-[600px] text-sm/6 text-neutral-600"
                 >
                   Lorem ipsum dolor sit amet consectetur adipisicing elit.
                   Veritatis accusamus adipisci repudiandae fuga eius, laboriosam

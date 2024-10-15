@@ -21,6 +21,7 @@
   let displayedCategories = $state(allCategories);
   let languageFilterValue = $state('all');
   let activeProviderIndex = $state(0);
+  let unsavedCategories = $state(categories);
   let newCategoryIds = $state([]);
   let error = $state(null);
   let languages = [
@@ -33,8 +34,8 @@
 
   // Get all category ids
   $effect(() => {
-    newCategoryIds = categories
-      .map((p) => p.categories.map((c) => c.id))
+    newCategoryIds = unsavedCategories
+      .map((p) => (p.categories || []).map((c) => c.id))
       .flat();
   });
 
@@ -53,7 +54,7 @@
     if (open) {
       showNavbar.set(false);
       languageFilterValue = 'all';
-      categories = JSON.parse(JSON.stringify(initialCategories));
+      unsavedCategories = JSON.parse(JSON.stringify(initialCategories));
     } else {
       showNavbar.set(true);
     }
@@ -109,10 +110,11 @@
     });
     isSavingCategories = false;
     if (res.ok) {
+      categories = unsavedCategories;
       initialCategories = JSON.parse(JSON.stringify(categories));
       hasUnsavedChanges = false;
+      onchange(initialCategories, categories);
       open = false;
-      onchange();
     } else {
       const data = await res.json();
       error = data.message;
@@ -182,29 +184,35 @@
                     isInUsersCategories ? 'bg-neutral-800' : 'bg-white'
                   )}
                   onclick={() => {
-                    const newItem = allCategories[
+                    // New category to add
+                    const newItem = displayedCategories[
                       activeProviderIndex
                     ].categories.find((c) => c.id === category.id);
+                    // If is removing from subscribed categories
                     if (isInUsersCategories) {
-                      for (let i = 0; i < categories.length; i++) {
-                        const index = categories[i].categories.findIndex(
+                      for (let i = 0; i < unsavedCategories.length; i++) {
+                        const index = unsavedCategories[i].categories.findIndex(
                           (c) => c.id === category.id
                         );
                         if (index !== -1) {
-                          categories[i].categories.splice(index, 1);
+                          unsavedCategories[i].categories.splice(index, 1);
                           break;
                         }
                       }
                     } else {
-                      const providerExists = categories
+                      // Adding to user's subscriptions
+                      const providerExists = unsavedCategories
                         .map((p) => p.id)
-                        .includes(allCategories[activeProviderIndex].id);
+                        .includes(displayedCategories[activeProviderIndex].id);
+                      // If the selected provider is not in user's subscriptions
                       if (!providerExists) {
-                        const provider = allCategories[activeProviderIndex];
+                        const provider = JSON.parse(JSON.stringify(displayedCategories[activeProviderIndex]));
                         provider.categories = [newItem];
-                        categories.push(provider);
+                        unsavedCategories.push(provider);
                       } else {
-                        categories[activeProviderIndex].categories.push(
+                        const activeProvider = displayedCategories[activeProviderIndex];
+                        const index = unsavedCategories.findIndex(p => p.id === activeProvider.id);
+                        unsavedCategories[index].categories.push(
                           newItem
                         );
                       }
