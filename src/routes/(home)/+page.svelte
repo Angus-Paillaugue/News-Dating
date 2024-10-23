@@ -1,5 +1,5 @@
 <script>
-  import Footer from './Footer.svelte';
+  // import Footer from './Footer.svelte';
   import Hero from './Hero.svelte';
 </script>
 
@@ -11,7 +11,7 @@
   <Hero />
 
   <!-- Bento -->
-  <main id="more-infos">
+  <!-- <main id="more-infos">
     <div class="py-32">
       <div class="px-6 lg:px-8">
         <div class="mx-auto max-w-2xl lg:max-w-7xl">
@@ -78,7 +78,6 @@
               class="max-lg:rounded-b-4xl lg:rounded-br-4xl group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 lg:col-span-2"
             >
               <div class="relative h-80 shrink-0">
-                <!-- Content -->
               </div>
               <div class="relative p-10">
                 <h3
@@ -100,7 +99,6 @@
             <div
               class="group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 lg:col-span-2"
             >
-              <!-- Ripple svg -->
               <div class="relative h-80 shrink-0">
                 <div aria-hidden="true" class="relative h-full overflow-hidden">
                   <div class="absolute inset-0">
@@ -147,7 +145,6 @@
               class="max-lg:rounded-b-4xl lg:rounded-br-4xl group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 lg:col-span-2"
             >
               <div class="relative h-80 shrink-0">
-                <!-- Content -->
               </div>
               <div class="relative p-10">
                 <h3
@@ -170,7 +167,7 @@
         </div>
       </div>
     </div>
-  </main>
+  </main> -->
 
-  <Footer />
+  <!-- <Footer /> -->
 </div>

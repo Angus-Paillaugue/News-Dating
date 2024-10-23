@@ -40,9 +40,10 @@
     localStorage.setItem('activeProviderIndex', activeProviderIndex);
 
     const provider = categories[activeProviderIndex];
-    if(!provider) {
-      if(categories.length === 0) {
-        error = "Please subscribe to at least one category to read it's content!";
+    if (!provider) {
+      if (categories.length === 0) {
+        error =
+          "Please subscribe to at least one category to read it's content!";
         return;
       } else {
         activeProviderIndex = 0;
@@ -50,13 +51,13 @@
       }
     }
     const category = provider.categories[activeCategoryIndex];
-    if(!category) {
-      if(provider.categories.length === 0 ) {
-        activeProviderIndex = 0
+    if (!category) {
+      if (provider.categories.length === 0) {
+        activeProviderIndex = 0;
         return;
-      }else {
+      } else {
         activeCategoryIndex = 0;
-        return
+        return;
       }
     }
 
@@ -71,7 +72,6 @@
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xml.contents, 'text/xml');
       const itemsElement = xmlDoc.getElementsByTagName('item');
-
 
       Array.from(itemsElement).forEach((item, index) => {
         try {
@@ -236,8 +236,13 @@
   {allCategories}
   onchange={(categoriesBefore, categoriesAfter) => {
     // If the active category was removed or changed index
-    if(categoriesBefore[activeProviderIndex]?.id !== categoriesAfter[activeProviderIndex]?.id) {
-      const newIndex = categoriesAfter[activeProviderIndex].findIndex((c) => c.id === categoriesBefore[activeProviderIndex].id);
+    if (
+      categoriesBefore[activeProviderIndex]?.id !==
+      categoriesAfter[activeProviderIndex]?.id
+    ) {
+      const newIndex = categoriesAfter[activeProviderIndex].findIndex(
+        (c) => c.id === categoriesBefore[activeProviderIndex].id
+      );
 
       // If the category was removed, set the active category to the first one available
       // Otherwise, set the active category to the new index

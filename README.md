@@ -25,10 +25,10 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 
 --
--- Database: `rss-news`
+-- Database: `news-dating`
 --
-CREATE DATABASE IF NOT EXISTS `rss-news` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `rss-news`;
+CREATE DATABASE IF NOT EXISTS `news-dating` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `news-dating`;
 
 -- --------------------------------------------------------
 

@@ -206,15 +206,20 @@
                         .includes(displayedCategories[activeProviderIndex].id);
                       // If the selected provider is not in user's subscriptions
                       if (!providerExists) {
-                        const provider = JSON.parse(JSON.stringify(displayedCategories[activeProviderIndex]));
+                        const provider = JSON.parse(
+                          JSON.stringify(
+                            displayedCategories[activeProviderIndex]
+                          )
+                        );
                         provider.categories = [newItem];
                         unsavedCategories.push(provider);
                       } else {
-                        const activeProvider = displayedCategories[activeProviderIndex];
-                        const index = unsavedCategories.findIndex(p => p.id === activeProvider.id);
-                        unsavedCategories[index].categories.push(
-                          newItem
+                        const activeProvider =
+                          displayedCategories[activeProviderIndex];
+                        const index = unsavedCategories.findIndex(
+                          (p) => p.id === activeProvider.id
                         );
+                        unsavedCategories[index].categories.push(newItem);
                       }
                     }
                   }}

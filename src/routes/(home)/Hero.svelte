@@ -85,12 +85,12 @@
           interface.
         </p>
         <div class="mt-12 flex flex-row gap-x-6 gap-y-4">
-          <Button class="inline-flex w-fit" href="/log-in">Get started</Button
-          ><Button
+          <Button class="inline-flex w-fit" href="/log-in">Get started</Button>
+          <!-- <Button
             class="inline-flex w-fit"
             variant="secondary"
             href="#more-infos">More infos</Button
-          >
+          > -->
         </div>
       </div>
     </div>
